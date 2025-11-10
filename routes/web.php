@@ -7,6 +7,7 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\TugasController;
 use App\Http\Controllers\NilaiController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\EnrollmentController;
 
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -27,10 +28,17 @@ Route::middleware(['auth'])->group(function () {
     // Kelas routes - specific routes BEFORE wildcard routes
     Route::get('/kelas', [KelasController::class, 'index'])->name('kelas');
     Route::get('/kelas/create', [KelasController::class, 'create'])->name('kelas.create');
+    Route::get('/kelas/join', [EnrollmentController::class, 'showJoinForm'])->name('kelas.join');
+    Route::post('/kelas/join', [EnrollmentController::class, 'joinKelas'])->name('kelas.join.submit');
     Route::post('/kelas', [KelasController::class, 'store'])->name('kelas.store');
     Route::get('/kelas/{id}/edit', [KelasController::class, 'edit'])->name('kelas.edit');
+    Route::get('/kelas/{id}/students', [EnrollmentController::class, 'students'])->name('kelas.students');
     Route::put('/kelas/{id}', [KelasController::class, 'update'])->name('kelas.update');
     Route::delete('/kelas/{id}', [KelasController::class, 'destroy'])->name('kelas.destroy');
+    Route::post('/kelas/{id}/leave', [EnrollmentController::class, 'leaveClass'])->name('kelas.leave');
+    Route::post('/kelas/{kelasId}/approve/{userId}', [EnrollmentController::class, 'approve'])->name('kelas.approve');
+    Route::post('/kelas/{kelasId}/reject/{userId}', [EnrollmentController::class, 'reject'])->name('kelas.reject');
+    Route::delete('/kelas/{kelasId}/remove/{userId}', [EnrollmentController::class, 'removeStudent'])->name('kelas.remove');
     Route::get('/kelas/{id}', [KelasController::class, 'show'])->name('kelas.detail');
 
     // Tugas routes - specific routes BEFORE wildcard routes

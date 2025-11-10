@@ -25,7 +25,38 @@ class User extends Authenticatable
 
     public function kelas()
     {
-        return $this->belongsToMany(Kelas::class, 'user_kelas');
+        return $this->belongsToMany(Kelas::class, 'user_kelas')
+                    ->withPivot('status', 'role')
+                    ->withTimestamps();
+    }
+
+    // Kelas sebagai guru (owner)
+    public function kelasAsGuru()
+    {
+        return $this->belongsToMany(Kelas::class, 'user_kelas')
+                    ->where('user_kelas.role', 'guru')
+                    ->withPivot('status', 'role')
+                    ->withTimestamps();
+    }
+
+    // Kelas sebagai siswa (approved only)
+    public function kelasAsSiswa()
+    {
+        return $this->belongsToMany(Kelas::class, 'user_kelas')
+                    ->where('user_kelas.role', 'siswa')
+                    ->where('user_kelas.status', 'approved')
+                    ->withPivot('status', 'role')
+                    ->withTimestamps();
+    }
+
+    // Pending enrollments (untuk siswa)
+    public function pendingEnrollments()
+    {
+        return $this->belongsToMany(Kelas::class, 'user_kelas')
+                    ->where('user_kelas.role', 'siswa')
+                    ->where('user_kelas.status', 'pending')
+                    ->withPivot('status', 'role')
+                    ->withTimestamps();
     }
 
     public function tugas()

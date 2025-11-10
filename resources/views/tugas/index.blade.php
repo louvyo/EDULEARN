@@ -101,13 +101,29 @@
                         </div>
                         
                         <div class="flex-shrink-0 text-right">
-                            <div class="inline-flex items-center px-3 py-1.5 rounded-lg {{ $t->status === 'selesai' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700' }} text-xs font-semibold mb-3">
-                                {{ ucfirst($t->status ?? 'pending') }}
-                            </div>
+                            @if(!$isGuru && isset($t->user_submission))
+                                @php
+                                    $submission = $t->user_submission;
+                                    $hasGrade = $submission->grade !== null;
+                                @endphp
+                                <div class="inline-flex items-center px-3 py-1.5 rounded-lg {{ $hasGrade ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700' }} text-xs font-semibold mb-3">
+                                    {{ $hasGrade ? '✓ Dinilai' : '✓ Dikumpulkan' }}
+                                </div>
+                                @if($hasGrade)
+                                    <div class="mb-2">
+                                        <p class="text-xs text-gray-500 mb-1">Nilai</p>
+                                        <p class="text-lg font-bold text-green-600">{{ $submission->grade }}</p>
+                                    </div>
+                                @endif
+                            @elseif(!$isGuru)
+                                <div class="inline-flex items-center px-3 py-1.5 rounded-lg bg-yellow-50 text-yellow-700 text-xs font-semibold mb-3">
+                                    Belum Dikumpulkan
+                                </div>
+                            @endif
                             <div>
                                 <p class="text-xs text-gray-500 mb-1">Batas Waktu</p>
-                                <p class="text-sm font-semibold text-gray-900">{{ optional($t->deadline)->format('d M Y') ?? 'Tidak ada' }}</p>
-                                <p class="text-xs text-gray-500">{{ optional($t->deadline)->format('H:i') ?? '' }}</p>
+                                <p class="text-sm font-semibold text-gray-900">@formatDate($t->deadline)</p>
+                                <p class="text-xs text-gray-500">@formatTime($t->deadline)</p>
                             </div>
                         </div>
                     </div>
@@ -144,8 +160,18 @@
                 </h3>
                 <div class="space-y-3">
                     @php
-                        $upcomingTugas = $tugas->filter(function($t) {
-                            return $t->deadline && $t->deadline->isFuture();
+                        $upcomingTugas = $tugas->filter(function($t) use ($isGuru) {
+                            // Hanya tampilkan tugas dengan deadline di masa depan
+                            if (!$t->deadline || !$t->deadline->isFuture()) {
+                                return false;
+                            }
+
+                            // Untuk siswa: sembunyikan tugas yang sudah dikumpulkan
+                            if (!$isGuru && isset($t->user_submission)) {
+                                return false;
+                            }
+
+                            return true;
                         })->sortBy('deadline')->take(5);
                     @endphp
                     
@@ -162,11 +188,22 @@
                                     <div class="font-semibold text-gray-900 text-sm truncate">{{ $ut->judul }}</div>
                                     <div class="text-xs text-gray-500 mt-1">{{ optional($ut->kelas)->name }}</div>
                                 </div>
-                                @if($isUrgent)
-                                    <span class="flex-shrink-0 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full">
-                                        Urgent
-                                    </span>
-                                @endif
+                                <div class="flex flex-col items-end gap-1">
+                                    @if(!$isGuru && isset($ut->user_submission))
+                                        @php
+                                            $hasGrade = $ut->user_submission->grade !== null;
+                                            $isLate = ($ut->user_submission->status ?? null) === 'late';
+                                        @endphp
+                                        <span class="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold {{ $hasGrade ? 'bg-green-100 text-green-700' : ($isLate ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700') }}">
+                                            {{ $hasGrade ? 'Dinilai' : ($isLate ? 'Terlambat' : 'Dikumpulkan') }}
+                                        </span>
+                                    @endif
+                                    @if($isUrgent)
+                                        <span class="flex-shrink-0 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full">
+                                            Urgent
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="flex items-center gap-2 mt-2">
                                 <svg class="w-3.5 h-3.5 {{ $isUrgent ? 'text-red-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">

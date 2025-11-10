@@ -46,21 +46,22 @@
         </div>
 
         {{-- Profile Card --}}
-        <div class="bg-gradient-to-br from-{{ auth()->user()->role === 'guru' ? 'purple' : 'blue' }}-50 to-{{ auth()->user()->role === 'guru' ? 'purple' : 'indigo' }}-50 rounded-2xl p-4 border border-{{ auth()->user()->role === 'guru' ? 'purple' : 'blue' }}-100/50 mb-6">
+        <div class="bg-{{ auth()->user()->role === 'guru' ? 'white' : 'gradient-to-br from-blue-50 to-blue-50' }} rounded-2xl p-4 border border-{{ auth()->user()->role === 'guru' ? 'gray-200' : 'blue-100' }} mb-6">
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-{{ auth()->user()->role === 'guru' ? 'purple' : 'blue' }}-500 to-{{ auth()->user()->role === 'guru' ? 'purple' : 'blue' }}-600 flex items-center justify-center shadow-md">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-14 h-14 rounded-2xl bg-{{ auth()->user()->role === 'guru' ? 'purple' : 'blue' }}-500 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
                         @if(auth()->user()->role === 'guru')
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v7" />
+                        <path d="M12 2L1 7l11 5 9-4.09V17h2V6M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
                         @else
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                         @endif
                     </svg>
                 </div>
-                <div class="flex-1">
-                    <p class="text-sm font-semibold text-gray-900">{{ auth()->user()->name }}</p>
-                    <p class="text-xs text-gray-600">{{ auth()->user()->role === 'guru' ? '👨‍🏫 Guru' : '👨‍🎓 Siswa' }}</p>
+                <div class="flex-1 min-w-0">
+                    <p class="text-base font-bold text-gray-900 truncate mb-1">{{ auth()->user()->name }}</p>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-{{ auth()->user()->role === 'guru' ? 'purple' : 'blue' }}-500 text-white">
+                        {{ auth()->user()->role === 'guru' ? '👨‍🏫 Guru' : '👨‍🎓 Siswa' }}
+                    </span>
                 </div>
             </div>
         </div>
@@ -104,6 +105,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
                 Nilai Tugas Siswa
+            </a>
+            @else
+            {{-- Menu khusus Siswa --}}
+            <div class="pt-4 pb-2">
+                <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">⚡ Aksi Cepat</p>
+            </div>
+            
+            <a href="{{ route('kelas.join') }}" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg transform hover:scale-[1.02]">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Gabung Kelas
             </a>
             @endif
 
@@ -150,16 +163,39 @@
                         $daysLeft = now()->diffInDays($task->deadline, false);
                         $isUrgent = $daysLeft <= 2;
                         $colorClass = $isUrgent ? 'orange' : 'green';
+                        
+                        // Check if student has submitted
+                        $hasSubmitted = false;
+                        $isGraded = false;
+                        if (auth()->user()->role === 'siswa' && isset($task->user_submission)) {
+                            $hasSubmitted = true;
+                            $isGraded = $task->user_submission->grade !== null;
+                        }
                     @endphp
                     <a href="{{ route('tugas.show', $task->id) }}" class="block px-3 py-2.5 bg-white rounded-xl border border-gray-100 hover:border-{{ $colorClass }}-200 hover:shadow-sm transition-all duration-200">
                         <div class="flex items-start space-x-3">
                             <div class="w-8 h-8 rounded-lg bg-{{ $colorClass }}-50 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-{{ $colorClass }}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                @if($hasSubmitted)
+                                    <svg class="w-4 h-4 text-{{ $isGraded ? 'green' : 'blue' }}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                @else
+                                    <svg class="w-4 h-4 text-{{ $colorClass }}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                @endif
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-xs font-medium text-gray-900 truncate">{{ $task->judul }}</p>
+                                <div class="flex items-start justify-between gap-1 mb-1">
+                                    <p class="text-xs font-medium text-gray-900 truncate flex-1">{{ $task->judul }}</p>
+                                    @if(auth()->user()->role === 'siswa')
+                                        @if($isGraded)
+                                            <span class="flex-shrink-0 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded">✓</span>
+                                        @elseif($hasSubmitted)
+                                            <span class="flex-shrink-0 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded">✓</span>
+                                        @endif
+                                    @endif
+                                </div>
                                 <p class="text-xs text-gray-500 mb-1">{{ optional($task->kelas)->name }}</p>
                                 <p class="text-xs {{ $isUrgent ? 'text-orange-600 font-semibold' : 'text-gray-600' }} countdown" 
                                    data-deadline="{{ $task->deadline->toIso8601String() }}">

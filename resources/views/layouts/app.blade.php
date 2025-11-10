@@ -19,6 +19,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <!-- Timezone Utilities -->
+  <script src="{{ asset('js/timezone-utils.js') }}" defer></script>
+
   <style>
     [x-cloak] {
       display: none !important;
@@ -143,6 +146,24 @@
           var deadline = el.getAttribute('data-deadline');
           if (!deadline) return;
           
+          // Use TimezoneUtils if available, otherwise fallback to old method
+          if (window.TimezoneUtils) {
+            var countdown = window.TimezoneUtils.getCountdown(deadline);
+            el.textContent = countdown.text;
+            
+            // Update classes based on urgency
+            el.classList.remove('text-red-600', 'text-orange-600', 'text-green-600', 'font-semibold');
+            if (countdown.isPast) {
+              el.classList.add('text-red-600', 'font-semibold');
+            } else if (countdown.isUrgent) {
+              el.classList.add('text-orange-600', 'font-semibold');
+            } else {
+              el.classList.add('text-gray-600');
+            }
+            return;
+          }
+          
+          // Fallback for old browsers
           var deadlineDate = new Date(deadline);
           var now = new Date();
           var diff = deadlineDate - now;

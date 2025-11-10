@@ -15,7 +15,7 @@
                 <div class="pl-8 lg:pl-0">
                     <div class="flex items-center gap-3 mb-3">
                         <h1 class="text-4xl font-bold">👨‍🎓 Dashboard Siswa</h1>
-                        <span class="px-3 py-1 bg-blue-700/50 backdrop-blur-sm rounded-full text-xs font-semibold">Student Mode</span>
+                        <span class="px-3 py-1 bg-blue-700/50 backdrop-blur-sm rounded-full text-xs font-semibold">Siswa Mode</span>
                     </div>
                     <p class="text-blue-100 text-lg">Selamat datang kembali, {{ auth()->user()->name }} 👋</p>
                     <p class="text-blue-200 text-sm mt-1">Pantau perkembangan belajar dan tugas Anda</p>

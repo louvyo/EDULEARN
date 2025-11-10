@@ -58,7 +58,7 @@ class DashboardController extends Controller
             ->get();
 
         $classes = $kelasSaya->map(function ($k) {
-            $totalSiswa = $k->users()->where('role', 'siswa')->count();
+            $totalSiswa = $k->users()->where('user_kelas.role', 'siswa')->count();
             $totalTugas = $k->tugas()->count();
             
             return [
@@ -84,8 +84,14 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        $totalKelas = Kelas::count();
-        $totalTugas = Tugas::count();
+        // Kelas yang diikuti siswa (status approved)
+        $kelasSaya = $user->kelasAsSiswa()->orderBy('kelas.created_at', 'desc')->limit(6)->get();
+        
+        $totalKelas = $kelasSaya->count();
+        
+        // Tugas dari kelas yang diikuti
+        $kelasIds = $kelasSaya->pluck('id');
+        $totalTugas = Tugas::whereIn('kelas_id', $kelasIds)->count();
 
         // Pengumpulan tugas siswa
         $pengumpulanSaya = \App\Models\Submission::where('user_id', $user->id)->count();
@@ -94,9 +100,6 @@ class DashboardController extends Controller
         $nilaiRata = \App\Models\Submission::where('user_id', $user->id)
             ->whereNotNull('grade')
             ->avg('grade');
-        
-        // Get all kelas with their progress, limit to 6 for dashboard
-        $kelasSaya = Kelas::orderBy('created_at', 'desc')->limit(6)->get();
 
         $stats = [
             ['label' => 'Total Kelas', 'value' => $totalKelas, 'color' => 'blue', 'icon' => 'book', 'trend' => ''],

@@ -78,7 +78,7 @@
                         </svg>
                         Batas waktu
                     </p>
-                    <p class="font-semibold text-gray-900">{{ optional($tugas->deadline)->format('d M Y H:i') ?? 'Tidak ada' }}</p>
+                    <p class="font-semibold text-gray-900">@formatDateTime($tugas->deadline)</p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-500 mb-1 flex items-center gap-2">
@@ -87,7 +87,17 @@
                         </svg>
                         Status
                     </p>
-                    <p class="font-semibold text-gray-900">{{ ucfirst($tugas->status ?? '---') }}</p>
+                    @if(!($isGuru ?? false) && $submission)
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-{{ $submission->statusColor }}-100 text-{{ $submission->statusColor }}-700 text-sm font-semibold">
+                            {{ $submission->statusText }}
+                        </span>
+                    @elseif(!($isGuru ?? false))
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-yellow-100 text-yellow-700 text-sm font-semibold">
+                            Belum Dikumpulkan
+                        </span>
+                    @else
+                        <p class="font-semibold text-gray-900">{{ $isGuru ? 'Tugas Aktif' : 'Belum Dikumpulkan' }}</p>
+                    @endif
                 </div>
             </div>
         </div>
@@ -111,7 +121,12 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <h3 class="font-semibold text-green-900 mb-2">Tugas Sudah Dikumpulkan</h3>
+                        <div class="flex items-start justify-between gap-4 mb-2">
+                            <h3 class="font-semibold text-green-900">Tugas Sudah Dikumpulkan</h3>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-{{ $submission->statusColor }}-100 text-{{ $submission->statusColor }}-700">
+                                {{ $submission->statusText }}
+                            </span>
+                        </div>
                         <p class="text-sm text-green-700 mb-3">Dikumpulkan pada <span class="font-semibold">{{ $submission->submitted_at->format('d M Y H:i') }}</span></p>
                         
                         @if($submission->file_path)
@@ -160,6 +175,8 @@
             </div>
         @endif
 
+        @if(!$isGuru && !$submission)
+        {{-- Form hanya muncul untuk siswa yang belum mengumpulkan --}}
         <form action="{{ route('tugas.submit', $tugas->id) }}" method="post" enctype="multipart/form-data" class="space-y-6"
               x-data="{
                   isDragging: false,
@@ -304,6 +321,104 @@
                 </a>
             </div>
         </form>
+        @elseif(!$isGuru && $submission)
+        {{-- Jika sudah mengumpulkan, tampilkan pesan atau tombol update (opsional) --}}
+        <div class="text-center py-6">
+            <div class="inline-flex items-center gap-3 px-6 py-3 bg-blue-50 text-blue-700 rounded-xl">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="font-medium">Anda sudah mengumpulkan tugas ini</p>
+            </div>
+            <p class="text-sm text-gray-500 mt-3">Hubungi guru jika ada kesalahan atau ingin mengumpulkan ulang</p>
+        </div>
+        @endif
+        
+        @if($isGuru && isset($submissions))
+        {{-- Section untuk Guru melihat submissions --}}
+        <div class="mt-8 border-t border-gray-200 pt-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Pengumpulan Siswa ({{ $submissions->count() }})
+            </h3>
+            
+            @forelse($submissions as $sub)
+            <div class="bg-gray-50 rounded-xl p-6 mb-4 border border-gray-200">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between gap-3 mb-2">
+                            <h4 class="font-semibold text-gray-900">{{ $sub->user->name }}</h4>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-{{ $sub->statusColor }}-100 text-{{ $sub->statusColor }}-700">
+                                {{ $sub->statusText }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Dikumpulkan: {{ $sub->submitted_at->format('d M Y H:i') }}</p>
+                        
+                        @if($sub->file_path)
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-2xl">{{ $sub->fileIcon }}</span>
+                            <div>
+                                <p class="font-medium text-gray-900">{{ $sub->file_name }}</p>
+                                <p class="text-sm text-gray-500">{{ $sub->fileSizeFormatted }}</p>
+                            </div>
+                            <a href="{{ route('submissions.download', $sub->id) }}" 
+                               class="ml-auto px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium">
+                                Download
+                            </a>
+                        </div>
+                        @endif
+                        
+                        @if($sub->content)
+                        <div class="bg-white p-3 rounded-lg mb-3">
+                            <p class="text-sm text-gray-600">{{ $sub->content }}</p>
+                        </div>
+                        @endif
+                        
+                        @if($sub->grade)
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="font-semibold">Nilai: {{ $sub->grade }}</span>
+                        </div>
+                        @endif
+                    </div>
+                    
+                    @if(!$sub->grade)
+                    <form action="{{ route('submissions.grade', $sub->id) }}" method="POST" class="bg-white p-4 rounded-xl border border-gray-200">
+                        @csrf
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nilai</label>
+                                <input type="number" name="grade" min="0" max="100" required
+                                       class="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Feedback</label>
+                                <textarea name="feedback" rows="2" 
+                                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+                            <button type="submit" 
+                                    class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                                Beri Nilai
+                            </button>
+                        </div>
+                    </form>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <div class="text-center py-12 bg-gray-50 rounded-xl">
+                <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-gray-500">Belum ada siswa yang mengumpulkan</p>
+            </div>
+            @endforelse
+        </div>
+        @endif
     </div>
 </div>
 @endsection

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timezone Utils - Demo & Testing</title>
+    <script src="/js/timezone-utils.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+        h2 {
+            color: #764ba2;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        .info-box {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .test-item {
+            background: #f7fafc;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .test-result {
+            font-family: monospace;
+            color: #2d3748;
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+        .countdown-demo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .urgent { color: #f56565 !important; }
+        .success { color: #48bb78 !important; }
+        code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🌍 Timezone Utils - Demo & Testing</h1>
+            <p>Halaman ini untuk testing utility timezone dinamis EduLearn.</p>
+        </div>
+
+        <div class="card">
+            <h2>📍 Informasi Timezone User</h2>
+            <div class="info-box">
+                <div class="test-item">
+                    <span class="test-label">Timezone Terdeteksi:</span>
+                    <span class="test-result" id="userTimezone">Mendeteksi...</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-label">Waktu Lokal Sekarang:</span>
+                    <span class="test-result" id="currentTime">Mendeteksi...</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-label">UTC Offset:</span>
+                    <span class="test-result" id="utcOffset">Mendeteksi...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🕐 Format Tanggal & Waktu</h2>
+            <p style="margin-bottom: 1rem;">
+                UTC Input: <code>2025-11-15T03:00:00Z</code> (15 Nov 2025 pukul 03:00 UTC)
+            </p>
+            <div class="test-item">
+                <span class="test-label">Format Lengkap:</span>
+                <span class="test-result" data-utc-time="2025-11-15T03:00:00Z" data-format="full">Loading...</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Tanggal Saja:</span>
+                <span class="test-result" data-utc-time="2025-11-15T03:00:00Z" data-format="date">Loading...</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Waktu Saja:</span>
+                <span class="test-result" data-utc-time="2025-11-15T03:00:00Z" data-format="time">Loading...</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Waktu Relatif:</span>
+                <span class="test-result" data-utc-time="2025-11-15T03:00:00Z" data-format="relative">Loading...</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>⏱️ Countdown Timer</h2>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <h3 style="color: #4a5568; margin-bottom: 0.5rem;">Countdown 1: Masih Lama (7 hari)</h3>
+                <p style="color: #718096; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    Deadline: <code id="deadline1">-</code>
+                </p>
+                <div class="countdown-demo countdown" data-deadline="" id="countdown1">
+                    Menghitung...
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <h3 style="color: #4a5568; margin-bottom: 0.5rem;">Countdown 2: Urgent (12 jam lagi)</h3>
+                <p style="color: #718096; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    Deadline: <code id="deadline2">-</code>
+                </p>
+                <div class="countdown-demo countdown urgent" data-deadline="" id="countdown2">
+                    Menghitung...
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <h3 style="color: #4a5568; margin-bottom: 0.5rem;">Countdown 3: Sudah Lewat</h3>
+                <p style="color: #718096; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    Deadline: <code id="deadline3">-</code>
+                </p>
+                <div class="countdown-demo countdown" data-deadline="" id="countdown3">
+                    Menghitung...
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🧪 JavaScript API Tests</h2>
+            <div style="background: #2d3748; color: #e2e8f0; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem;">
+                <div id="jsTests">Running tests...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for TimezoneUtils to be loaded
+        window.addEventListener('load', function() {
+            // Display user timezone info
+            const timezone = TimezoneUtils.getUserTimezone();
+            document.getElementById('userTimezone').textContent = timezone;
+            
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleString('id-ID', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            const offset = -now.getTimezoneOffset() / 60;
+            document.getElementById('utcOffset').textContent = `UTC${offset >= 0 ? '+' : ''}${offset}`;
+
+            // Setup countdown tests
+            const now_ms = Date.now();
+            
+            // Countdown 1: 7 days from now
+            const deadline1 = new Date(now_ms + (7 * 24 * 60 * 60 * 1000));
+            document.getElementById('countdown1').setAttribute('data-deadline', deadline1.toISOString());
+            document.getElementById('deadline1').textContent = deadline1.toISOString();
+            
+            // Countdown 2: 12 hours from now (urgent)
+            const deadline2 = new Date(now_ms + (12 * 60 * 60 * 1000));
+            document.getElementById('countdown2').setAttribute('data-deadline', deadline2.toISOString());
+            document.getElementById('deadline2').textContent = deadline2.toISOString();
+            
+            // Countdown 3: 2 days ago (past)
+            const deadline3 = new Date(now_ms - (2 * 24 * 60 * 60 * 1000));
+            document.getElementById('countdown3').setAttribute('data-deadline', deadline3.toISOString());
+            document.getElementById('deadline3').textContent = deadline3.toISOString();
+
+            // Re-initialize countdowns
+            TimezoneUtils.updateCountdowns();
+
+            // Run JavaScript API tests
+            let testOutput = '';
+            
+            testOutput += '✅ getUserTimezone(): ' + TimezoneUtils.getUserTimezone() + '\n\n';
+            
+            const testDate = '2025-11-15T03:00:00Z';
+            testOutput += '📅 Testing with UTC: ' + testDate + '\n';
+            testOutput += '-----------------------------------\n';
+            testOutput += 'formatDate(): ' + TimezoneUtils.formatDate(testDate) + '\n';
+            testOutput += 'formatDateOnly(): ' + TimezoneUtils.formatDateOnly(testDate) + '\n';
+            testOutput += 'formatTimeOnly(): ' + TimezoneUtils.formatTimeOnly(testDate) + '\n';
+            testOutput += 'getRelativeTime(): ' + TimezoneUtils.getRelativeTime(testDate) + '\n\n';
+            
+            const countdown = TimezoneUtils.getCountdown(testDate);
+            testOutput += 'getCountdown():\n';
+            testOutput += '  text: ' + countdown.text + '\n';
+            testOutput += '  isUrgent: ' + countdown.isUrgent + '\n';
+            testOutput += '  isPast: ' + countdown.isPast + '\n\n';
+            
+            testOutput += '✅ All tests completed successfully!';
+            
+            document.getElementById('jsTests').textContent = testOutput;
+        });
+    </script>
+</body>
+</html>

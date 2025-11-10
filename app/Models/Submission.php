@@ -81,4 +81,26 @@ class Submission extends Model
         
         return $icons[$type] ?? '📎';
     }
+
+    public function getStatusBadgeAttribute()
+    {
+        $badges = [
+            'submitted' => ['text' => 'Dikumpulkan', 'color' => 'blue'],
+            'late' => ['text' => 'Terlambat', 'color' => 'orange'],
+            'graded' => ['text' => 'Dinilai', 'color' => 'green'],
+        ];
+        
+        $status = $this->grade ? 'graded' : ($this->status ?? 'submitted');
+        return $badges[$status] ?? ['text' => 'Unknown', 'color' => 'gray'];
+    }
+
+    public function getStatusTextAttribute()
+    {
+        return $this->statusBadge['text'];
+    }
+
+    public function getStatusColorAttribute()
+    {
+        return $this->statusBadge['color'];
+    }
 }

@@ -35,6 +35,13 @@
                         </svg>
                         Buat Kelas Baru
                     </a>
+                    @else
+                    <a href="{{ route('kelas.join') }}" class="hidden lg:flex items-center gap-2 px-6 py-3 bg-white text-green-600 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Gabung Kelas
+                    </a>
                     @endif
                 </div>
             </div>
@@ -53,7 +60,16 @@
                         <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
-                        <p class="text-gray-500 text-lg">Belum ada kelas untuk ditampilkan.</p>
+                        <p class="text-gray-500 text-lg mb-2">{{ $isGuru ? 'Belum ada kelas untuk ditampilkan.' : 'Anda belum bergabung dengan kelas manapun.' }}</p>
+                        @if(!$isGuru)
+                        <p class="text-gray-400 text-sm mb-6">Gunakan kode kelas dari guru untuk bergabung</p>
+                        <a href="{{ route('kelas.join') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Gabung Kelas
+                        </a>
+                        @endif
                     </div>
                 </div>
             @endforelse
@@ -95,4 +111,21 @@
         </aside>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // Animate progress bars on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('[data-progress]');
+        
+        // Use setTimeout to ensure smooth animation after page load
+        setTimeout(() => {
+            progressBars.forEach(bar => {
+                const progress = bar.getAttribute('data-progress');
+                bar.style.width = progress + '%';
+            });
+        }, 300);
+    });
+</script>
+@endpush
 @endsection

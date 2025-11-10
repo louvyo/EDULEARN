@@ -6,6 +6,7 @@ use App\Models\Tugas;
 use App\Models\Kelas;
 use App\Models\Submission;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -17,16 +18,37 @@ class TugasController extends Controller
         $user = Auth::user();
         $isGuru = $user && $user->role === 'guru';
         
-        // List tugas (optionally filter by kelas)
-        $kelas = Kelas::all();
+        // Filter classes and assignments based on role
+        if ($isGuru) {
+            // Guru: show all classes and all assignments
+            $kelas = Kelas::all();
+            $query = Tugas::with(['kelas', 'user'])->orderBy('deadline', 'asc');
+        } else {
+            // Siswa: only show enrolled classes and their assignments
+            $kelas = $user->kelasAsSiswa()->get();
+            $kelasIds = $kelas->pluck('id');
+            
+            $query = Tugas::with(['kelas', 'user'])
+                ->whereIn('kelas_id', $kelasIds)
+                ->orderBy('deadline', 'asc');
+        }
 
-        $query = Tugas::with(['kelas', 'user'])->orderBy('deadline', 'asc');
-
+        // Apply filter by class if selected
         if (request()->filled('kelas_id')) {
             $query->where('kelas_id', request('kelas_id'));
         }
 
         $tugas = $query->get();
+        
+        // Add submission status for students
+        if (!$isGuru) {
+            $tugas->each(function($task) use ($user) {
+                $task->user_submission = Submission::where('tugas_id', $task->id)
+                    ->where('user_id', $user->id)
+                    ->latest('submitted_at')
+                    ->first();
+            });
+        }
 
         return view('tugas.index', compact('tugas', 'kelas', 'isGuru'));
     }
@@ -174,6 +196,21 @@ class TugasController extends Controller
             'poin' => $request->poin ?? 100,
         ]);
         
+        // Kirim notifikasi ke semua siswa di kelas
+        $kelas = Kelas::find($request->kelas_id);
+        $students = $kelas->students()->get();
+        
+        foreach ($students as $student) {
+            Notification::create([
+                'user_id' => $student->id,
+                'type' => 'tugas_baru',
+                'title' => 'Tugas Baru: ' . $tugas->judul,
+                'message' => 'Guru ' . $user->name . ' membuat tugas baru di kelas ' . $kelas->nama,
+                'link' => route('tugas.show', $tugas->id),
+                'is_read' => false,
+            ]);
+        }
+        
         return redirect()->route('tugas.show', $tugas->id)
             ->with('success', 'Tugas berhasil dibuat!');
     }
@@ -265,6 +302,17 @@ class TugasController extends Controller
             'feedback' => $request->feedback,
             'graded_at' => now(),
             'graded_by' => $user->id,
+        ]);
+        
+        // Kirim notifikasi ke siswa
+        $tugas = $submission->tugas;
+        Notification::create([
+            'user_id' => $submission->user_id,
+            'type' => 'nilai_keluar',
+            'title' => 'Tugas Dinilai',
+            'message' => 'Tugas "' . $tugas->judul . '" telah dinilai. Nilai Anda: ' . $request->grade,
+            'link' => route('tugas.show', $tugas->id),
+            'is_read' => false,
         ]);
         
         return back()->with('success', 'Nilai berhasil diberikan!');

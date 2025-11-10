@@ -18,15 +18,42 @@ class KelasController extends Controller
         $user = Auth::user();
         $isGuru = $user && $user->role === 'guru';
         
-        // For teachers, show all classes they manage
-        // For students, show classes they're enrolled in (or all for now)
-        $classes = Kelas::paginate(9);
-        
-        // Get latest activities from all classes
-        $latestActivities = Aktivitas::with(['kelas', 'user'])
-            ->orderBy('waktu', 'desc')
-            ->limit(10)
-            ->get();
+        // For teachers, show all classes
+        // For students, show only classes they're enrolled in (approved)
+        if ($isGuru) {
+            $classes = Kelas::orderBy('created_at', 'desc')->paginate(9);
+            
+            // Get latest activities from all classes
+            $latestActivities = Aktivitas::with(['kelas', 'user'])
+                ->orderBy('waktu', 'desc')
+                ->limit(10)
+                ->get();
+        } else {
+            // Students: only show enrolled classes (approved status)
+            $kelasIds = $user->kelasAsSiswa()->pluck('kelas.id');
+            $classes = Kelas::whereIn('id', $kelasIds)
+                ->orderBy('created_at', 'desc')
+                ->paginate(9);
+            
+            // Add progress data for each class for students
+            $classes->getCollection()->transform(function ($kelas) use ($user) {
+                // Calculate progress based on submitted assignments
+                $totalTugas = $kelas->tugas()->count();
+                $tugasSelesai = \App\Models\Submission::where('user_id', $user->id)
+                    ->whereIn('tugas_id', $kelas->tugas()->pluck('id'))
+                    ->count();
+                
+                $kelas->progress = $totalTugas > 0 ? round(($tugasSelesai / $totalTugas) * 100) : 0;
+                return $kelas;
+            });
+            
+            // Get latest activities only from enrolled classes
+            $latestActivities = Aktivitas::with(['kelas', 'user'])
+                ->whereIn('kelas_id', $kelasIds)
+                ->orderBy('waktu', 'desc')
+                ->limit(10)
+                ->get();
+        }
 
         return view('kelas.index', compact('classes', 'latestActivities', 'isGuru'));
     }
@@ -57,6 +84,7 @@ class KelasController extends Controller
             'teacher' => $kelasModel->guru,
             'semester' => $kelasModel->semester,
             'color' => $kelasModel->warna,
+            'kode_kelas' => $kelasModel->kode_kelas,
             'code' => 'KLS-' . str_pad($kelasModel->id, 4, '0', STR_PAD_LEFT),
             'schedule' => 'Senin, 08:00 - 10:00',
             'room' => 'Lab Komputer 1',
