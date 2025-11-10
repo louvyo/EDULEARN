@@ -1,11 +1,11 @@
 @php
     // expects $class (model or array) to be available
-    $id = $class['id'] ?? ($class->id ?? null);
-    $title = $class['nama'] ?? ($class['title'] ?? ($class->title ?? '-'));
-    $teacher = $class['guru'] ?? ($class->guru ?? '---');
-    $semester = $class['semester'] ?? ($class->semester ?? '---');
-    $color = $class['warna'] ?? ($class['color'] ?? ($class->color ?? 'blue'));
-    $progress = isset($class['progress']) ? (int) $class['progress'] : (int) ($class->progress ?? 0);
+    $id = data_get($class, 'id', null);
+    $title = data_get($class, 'nama', data_get($class, 'title', '-'));
+    $teacher = data_get($class, 'guru', '---');
+    $semester = data_get($class, 'semester', '---');
+    $color = data_get($class, 'warna', data_get($class, 'color', 'blue'));
+    $progress = (int) data_get($class, 'progress', data_get($class, 'progress', 0));
 @endphp
 
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg">
@@ -20,7 +20,7 @@
                 <span>{{ $progress }}%</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="h-2 rounded-full bg-{{ $color }}-600" style="width: {{ $progress }}%"></div>
+                <div class="h-2 rounded-full bg-{{ $color }}-600" data-progress="{{ $progress }}"></div>
             </div>
         </div>
 

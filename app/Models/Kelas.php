@@ -30,4 +30,9 @@ class Kelas extends Model
     {
         return $this->hasMany(Tugas::class);
     }
+
+    public function aktivitas()
+    {
+        return $this->hasMany(Aktivitas::class);
+    }
 }

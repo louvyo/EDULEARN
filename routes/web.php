@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KelasController;
-// AuthController removed; login feature disabled
+use App\Http\Controllers\TugasController;
+use App\Http\Controllers\NilaiController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -12,19 +13,21 @@ Route::get('/', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
-// Login feature removed. Routes that previously required auth will no longer redirect to a login page.
-
 // Kelas (student view) - public route (auth disabled)
 Route::get('/kelas', [KelasController::class, 'index'])
     ->name('kelas');
 
-Route::get('/tugas', function () {
-    return view('tugas.index');
-})->name('tugas');
+Route::get('/tugas', [TugasController::class, 'index'])
+    ->name('tugas');
 
-Route::get('/nilai', function () {
-    return view('nilai.index');
-})->name('nilai');
+Route::get('/tugas/{id}', [TugasController::class, 'show'])
+    ->name('tugas.show');
+
+Route::post('/tugas/{id}/submit', [TugasController::class, 'submit'])
+    ->name('tugas.submit');
+
+Route::get('/nilai', [NilaiController::class, 'index'])
+    ->name('nilai');
 
 Route::get('/kelas/{id}', [KelasController::class, 'show'])
     ->name('kelas.detail');

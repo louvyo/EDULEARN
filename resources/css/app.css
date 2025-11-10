@@ -7,8 +7,97 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    
+    /* Custom animations */
+    --animate-fade-in: fade-in 0.5s ease-out;
+    --animate-fade-in-scale: fade-in-scale 0.4s ease-out;
+    --animate-slide-in-right: slide-in-right 0.5s ease-out;
+    --animate-float: float 3s ease-in-out infinite;
+}
+
+/* Custom animations */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-in-scale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@utility animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+}
+
+@utility animate-fade-in-scale {
+    animation: fade-in-scale 0.4s ease-out;
+}
+
+@utility animate-slide-in-right {
+    animation: slide-in-right 0.5s ease-out;
+}
+
+@utility animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Smooth shadow utilities */
+@utility shadow-minimal {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+@utility shadow-minimal-hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Global smooth transitions */
+* {
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 

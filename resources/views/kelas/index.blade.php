@@ -1,4 +1,4 @@
-@extends('layout.app')
+@extends('layouts.app')
 
 @section('title', 'Kelas Saya - MyClassroom')
 
@@ -11,8 +11,8 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            @forelse($classes ?? [] as $class)
-                @include('kelas._card', ['class' => $class])
+                @forelse($classes ?? [] as $class)
+                @include('kelas.card', ['class' => $class])
             @empty
                 <div class="col-span-1 md:col-span-2">
                     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm text-center text-gray-500">Belum ada kelas untuk ditampilkan.</div>
@@ -34,9 +34,9 @@
                 <div class="mt-4 space-y-4">
                     @forelse($latestActivities ?? [] as $act)
                         <div class="text-sm text-gray-700">
-                            <div class="font-medium">{{ $act->judul ?? ($act['judul'] ?? '-') }}</div>
-                            <div class="text-xs text-gray-500">{{ optional($act->waktu ?? ($act['waktu'] ?? null))->diffForHumans() ?? '' }}</div>
-                            <div class="text-xs text-gray-600 mt-1">{{ Str::limit($act->deskripsi ?? ($act['deskripsi'] ?? ''), 80) }}</div>
+                            <div class="font-medium">{{ data_get($act, 'judul', '-') }}</div>
+                            <div class="text-xs text-gray-500">{{ optional(data_get($act, 'waktu', null))->diffForHumans() ?? '' }}</div>
+                            <div class="text-xs text-gray-600 mt-1">{{ Str::limit(data_get($act, 'deskripsi', ''), 80) }}</div>
                         </div>
                     @empty
                         <div class="text-sm text-gray-500">Belum ada aktivitas terbaru.</div>

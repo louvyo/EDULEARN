@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@yield('title', 'EduLearn - Learning Management System')</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.1/dist/cdn.min.js"></script>
+
+  @if (class_exists('\\Illuminate\\Support\\Facades\\Vite'))
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
+  @else
+  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+  <script src="{{ asset('js/app.js') }}" defer></script>
+  @endif
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    [x-cloak] {
+      display: none !important;
+    }
+    
+    * {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+  </style>
+
+  @stack('head')
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 via-white to-gray-50 min-h-screen">
+  <div x-data="{
+        sidebarOpen: false,
+        isMobile: false,
+        
+        init() {
+            // Check if mobile on init
+            this.isMobile = window.innerWidth < 1024;
+            
+            // Load sidebar state from localStorage, default to true for desktop, false for mobile
+            const savedState = localStorage.getItem('sidebarOpen');
+            
+            if (savedState !== null) {
+                this.sidebarOpen = savedState === 'true';
+            } else {
+                this.sidebarOpen = !this.isMobile;
+            }
+            
+            // Save to localStorage whenever sidebar state changes
+            this.$watch('sidebarOpen', (value) => {
+                localStorage.setItem('sidebarOpen', value);
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                this.isMobile = window.innerWidth < 1024;
+                
+                // Auto-close sidebar on mobile if it was open
+                if (this.isMobile && this.sidebarOpen) {
+                    this.sidebarOpen = false;
+                }
+                // Auto-open sidebar on desktop if it was closed by mobile behavior
+                if (!this.isMobile && !this.sidebarOpen && localStorage.getItem('sidebarOpen') === 'true') {
+                    this.sidebarOpen = true;
+                }
+            });
+        }
+    }" class="flex min-h-screen">
+
+    @include('components.sidebar')
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col transition-all duration-500 ease-out"
+      :class="{
+                 'lg:ml-64': sidebarOpen && !isMobile,
+                 'ml-0': !sidebarOpen || isMobile
+             }">
+
+      @include('components.navbar')
+
+      <main class="flex-1 p-4 lg:p-8 animate-fade-in">
+        @yield('content')
+      </main>
+      
+      <!-- Footer -->
+      <footer class="mt-auto py-6 px-8 border-t border-gray-100 bg-white/50 backdrop-blur-sm">
+        <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+          <p class="mb-2 md:mb-0">&copy; 2025 EduLearn. Built with ❤️ for better learning.</p>
+          <div class="flex space-x-6">
+            <a href="#" class="hover:text-blue-600 transition-colors duration-200">Privacy</a>
+            <a href="#" class="hover:text-blue-600 transition-colors duration-200">Terms</a>
+            <a href="#" class="hover:text-blue-600 transition-colors duration-200">Support</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Optional: Clear sidebar state on page refresh if you want fresh start
+    // localStorage.removeItem('sidebarOpen');
+  </script>
+
+  @stack('scripts')
+  <!-- Hidden safelist for Tailwind to include dynamic color classes used in templates -->
+  <div class="hidden" aria-hidden="true">
+    bg-blue-50 bg-green-50 bg-purple-50 bg-orange-50
+    bg-blue-600 bg-green-600 bg-purple-600 bg-orange-600
+    text-blue-700 text-green-700 text-purple-700 text-orange-700
+  </div>
+  <script>
+    // Apply dynamic styles that were moved to data- attributes to avoid CSS parser warnings
+    document.addEventListener('DOMContentLoaded', function () {
+      // transition delay in ms
+      document.querySelectorAll('[data-transition-ms]').forEach(function (el) {
+        var ms = el.getAttribute('data-transition-ms');
+        if (ms !== null) {
+          el.style.transitionDelay = ms + 'ms';
+        }
+      });
+
+      // progress bars
+      document.querySelectorAll('[data-progress]').forEach(function (el) {
+        var p = el.getAttribute('data-progress');
+        if (p !== null) {
+          // ensure numeric and clamp 0..100
+          var n = parseInt(p, 10) || 0;
+          if (n < 0) n = 0;
+          if (n > 100) n = 100;
+          el.style.width = n + '%';
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
