@@ -12,6 +12,23 @@ class UserSeeder extends Seeder
 
     public function run(): void
     {
+        // Siswa
+        User::firstOrCreate([
+            'email' => 'murid@edulearn.com',
+        ], [
+            'name' => 'Murid',
+            'password' => bcrypt('password'),
+        ]);
+
+        // Guru
+        User::firstOrCreate([
+            'email' => 'guru@edulearn.com',
+        ], [
+            'name' => 'Guru',
+            'password' => bcrypt('password'),
+        ]);
+
+        // Test user (backward compatibility)
         User::firstOrCreate([
             'email' => 'test@example.com',
         ], [

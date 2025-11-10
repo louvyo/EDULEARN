@@ -4,10 +4,16 @@
 
 @section('content')
 <div class="space-y-8 max-w-7xl mx-auto">
-    <!-- Header Section -->
+    <!-- Header Section with Background -->
     <div class="animate-fade-in">
-        <h1 class="text-4xl font-bold text-gray-900">Dashboard</h1>
-        <p class="text-gray-600 mt-2 text-lg">Selamat datang kembali, Murid 👋</p>
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-8 text-white">
+                <div class="pl-8 lg:pl-0">
+                    <h1 class="text-4xl font-bold mb-2">Dashboard</h1>
+                    <p class="text-blue-100 text-lg">Selamat datang kembali, Murid 👋</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Stats Grid -->
@@ -19,7 +25,7 @@
             $color = data_get($stat, 'color', 'gray');
             $trend = data_get($stat, 'trend', '');
         @endphp
-        <div class="group bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-100 shadow-minimal hover:shadow-minimal-hover transition-all duration-500 ease-out hover:-translate-y-1 animate-fade-in"
+        <div class="group bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-100 shadow-minimal hover:shadow-minimal-hover transition-all duration-500 ease-out hover:-translate-y-2 animate-fade-in-scale"
             style="animation-delay: {{ $index * 100 }}ms;">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -71,29 +77,46 @@
                 $cColor = data_get($class, 'color', data_get($class, 'warna', 'blue'));
                 $cProgress = (int) data_get($class, 'progress', 0);
                 $cId = data_get($class, 'id', null);
+                
+                // Define color values for gradient
+                $colorMap = [
+                    'blue' => ['from' => '#60a5fa', 'to' => '#2563eb', 'lighter' => '#dbeafe', 'light' => '#bfdbfe'],
+                    'green' => ['from' => '#4ade80', 'to' => '#16a34a', 'lighter' => '#d1fae5', 'light' => '#a7f3d0'],
+                    'purple' => ['from' => '#c084fc', 'to' => '#9333ea', 'lighter' => '#e9d5ff', 'light' => '#d8b4fe'],
+                    'red' => ['from' => '#f87171', 'to' => '#dc2626', 'lighter' => '#fee2e2', 'light' => '#fecaca'],
+                    'yellow' => ['from' => '#fbbf24', 'to' => '#d97706', 'lighter' => '#fef3c7', 'light' => '#fde68a'],
+                    'pink' => ['from' => '#f472b6', 'to' => '#db2777', 'lighter' => '#fce7f3', 'light' => '#fbcfe8'],
+                ];
+                $gradientColors = $colorMap[$cColor] ?? $colorMap['blue'];
             @endphp
             <div class="group bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-minimal hover:shadow-minimal-hover overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2 animate-fade-in-scale"
                 style="animation-delay: {{ ($index + 4) * 150 }}ms;">
-                <div class="h-2 bg-gradient-to-r from-{{ $cColor }}-400 to-{{ $cColor }}-600 transition-all duration-300 group-hover:h-3"></div>
+                <!-- Gradient stripe at top -->
+                <div class="h-2 transition-all duration-300 group-hover:h-3" 
+                     style="background: linear-gradient(to right, {{ $gradientColors['from'] }}, {{ $gradientColors['to'] }});"></div>
                 <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-1 group-hover:text-{{ $cColor }}-600 transition-colors duration-300">{{ $cTitle }}</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1 transition-colors duration-300">{{ $cTitle }}</h3>
                     <p class="text-sm text-gray-500 mb-4">Semester Ganjil 2024/2025</p>
                     
                     <!-- Progress Bar -->
                     <div class="mb-4">
                         <div class="flex justify-between text-xs text-gray-600 mb-2">
                             <span class="font-medium">Progress Kelas</span>
-                            <span class="font-bold text-{{ $cColor }}-600">{{ $cProgress }}%</span>
+                            <span class="font-bold" style="color: {{ $gradientColors['to'] }};">{{ $cProgress }}%</span>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                            <div class="h-2 rounded-full bg-gradient-to-r from-{{ $cColor }}-400 to-{{ $cColor }}-600 transition-all duration-1000 ease-out shadow-sm"
-                                data-progress="{{ $cProgress }}">
+                            <div class="h-2 rounded-full transition-all duration-[1500ms] ease-out shadow-sm"
+                                data-progress="{{ $cProgress }}"
+                                style="width: 0%; background: linear-gradient(to right, {{ $gradientColors['from'] }}, {{ $gradientColors['to'] }});">
                             </div>
                         </div>
                     </div>
 
                     <a href="{{ $cId ? route('kelas.detail', ['id' => $cId]) : '#' }}" 
-                       class="block text-center py-3 px-4 bg-gradient-to-r from-{{ $cColor }}-50 to-{{ $cColor }}-100 text-{{ $cColor }}-700 rounded-xl hover:from-{{ $cColor }}-100 hover:to-{{ $cColor }}-200 transition-all duration-300 font-semibold group-hover:scale-105">
+                       class="block text-center py-3 px-4 rounded-xl transition-all duration-300 font-semibold group-hover:scale-105"
+                       style="background-color: white; color: {{ $gradientColors['to'] }};"
+                       onmouseover="this.style.backgroundColor='{{ $gradientColors['lighter'] }}'"
+                       onmouseout="this.style.backgroundColor='white'">
                         Masuk Kelas
                     </a>
                 </div>

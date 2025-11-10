@@ -3,10 +3,10 @@
     {{-- Toggle Button - Minimalist Design --}}
     <button
         @click="sidebarOpen = !sidebarOpen"
-        class="fixed z-50 bg-white/90 backdrop-blur-md rounded-2xl border border-gray-200/80 shadow-minimal p-2.5 text-gray-600 hover:text-gray-900 hover:bg-white hover:shadow-minimal-hover focus:outline-none transition-all duration-300 hover:scale-105"
+        class="fixed bg-white/90 backdrop-blur-md rounded-2xl border border-gray-200/80 shadow-minimal p-2.5 text-gray-600 hover:text-gray-900 hover:bg-white hover:shadow-minimal-hover focus:outline-none transition-all duration-300 hover:scale-105"
         :class="{
-            'left-4 top-4': !sidebarOpen || isMobile,
-            'left-64 top-4': sidebarOpen && !isMobile
+            'left-4 top-20 z-40': !sidebarOpen || isMobile,
+            'left-64 top-20 z-50': sidebarOpen && !isMobile
         }"
         :style="sidebarOpen && !isMobile ? 'transform: translateX(-50%);' : ''">
         {{-- Icon when sidebar is closed --}}

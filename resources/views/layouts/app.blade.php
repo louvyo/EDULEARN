@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title', 'EduLearn - Learning Management System')</title>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.1/dist/cdn.min.js"></script>
 
@@ -79,7 +80,10 @@
                  'ml-0': !sidebarOpen || isMobile
              }">
 
-      @include('components.navbar')
+      <!-- Sticky Navbar -->
+      <div class="sticky top-0 z-50">
+        @include('components.navbar')
+      </div>
 
       <main class="flex-1 p-4 lg:p-8 animate-fade-in">
         @yield('content')
@@ -101,6 +105,38 @@
 
   <script>
     document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Scroll to top on page load
+    window.addEventListener('load', function() {
+      window.scrollTo(0, 0);
+    });
+
+    // Also scroll to top immediately
+    if (history.scrollRestoration) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
+    // Apply progress bar widths with animation
+    document.addEventListener('DOMContentLoaded', function () {
+      // Progress bars - animate after page fully loads
+      setTimeout(function() {
+        document.querySelectorAll('[data-progress]').forEach(function (el, index) {
+          var p = el.getAttribute('data-progress');
+          if (p !== null) {
+            // ensure numeric and clamp 0..100
+            var n = parseInt(p, 10) || 0;
+            if (n < 0) n = 0;
+            if (n > 100) n = 100;
+            
+            // Stagger animation for each progress bar
+            setTimeout(function() {
+              el.style.width = n + '%';
+            }, index * 300); // Each bar animates 300ms after the previous
+          }
+        });
+      }, 500); // Wait 500ms after page load
+    });
 
     // Optional: Clear sidebar state on page refresh if you want fresh start
     // localStorage.removeItem('sidebarOpen');

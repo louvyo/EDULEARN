@@ -14,6 +14,9 @@ class Submission extends Model
         'tugas_id',
         'user_id',
         'file_path',
+        'file_name',
+        'file_type',
+        'file_size',
         'content',
         'submitted_at',
         'status',
@@ -38,5 +41,44 @@ class Submission extends Model
     public function getFileUrlAttribute()
     {
         return $this->file_path ? Storage::url($this->file_path) : null;
+    }
+
+    public function getFileSizeFormattedAttribute()
+    {
+        if (!$this->file_size) return null;
+        
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $bytes = $this->file_size;
+        $i = 0;
+        
+        while ($bytes >= 1024 && $i < count($units) - 1) {
+            $bytes /= 1024;
+            $i++;
+        }
+        
+        return round($bytes, 2) . ' ' . $units[$i];
+    }
+
+    public function getFileIconAttribute()
+    {
+        $type = strtolower($this->file_type ?? '');
+        
+        $icons = [
+            'pdf' => '📄',
+            'doc' => '📝',
+            'docx' => '📝',
+            'xls' => '📊',
+            'xlsx' => '📊',
+            'ppt' => '📊',
+            'pptx' => '📊',
+            'zip' => '📦',
+            'rar' => '📦',
+            'jpg' => '🖼️',
+            'jpeg' => '🖼️',
+            'png' => '🖼️',
+            'gif' => '🖼️',
+        ];
+        
+        return $icons[$type] ?? '📎';
     }
 }

@@ -50,11 +50,11 @@ class TugasController extends Controller
         $tugas = Tugas::findOrFail($id);
 
         $request->validate([
-            'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,txt,zip,jpg,jpeg,png',
+            'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,txt,zip,jpg,jpeg,png,ppt,pptx,xls,xlsx',
             'content' => 'nullable|string|max:2000',
         ]);
 
-    $userId = auth()->id() ?? User::value('id');
+        $userId = auth()->id() ?? User::value('id');
 
         if (! $userId) {
             return redirect()->route('tugas.show', $tugas->id)
@@ -62,8 +62,16 @@ class TugasController extends Controller
         }
 
         $filePath = null;
+        $fileName = null;
+        $fileType = null;
+        $fileSize = null;
+        
         if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('submissions', 'public');
+            $file = $request->file('file');
+            $filePath = $file->store('submissions', 'public');
+            $fileName = $file->getClientOriginalName();
+            $fileType = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
         }
 
         $status = 'submitted';
@@ -75,11 +83,36 @@ class TugasController extends Controller
             'tugas_id' => $tugas->id,
             'user_id' => $userId,
             'file_path' => $filePath,
+            'file_name' => $fileName,
+            'file_type' => $fileType,
+            'file_size' => $fileSize,
             'content' => $request->input('content'),
             'submitted_at' => now(),
             'status' => $status,
         ]);
 
         return redirect()->route('tugas.show', $tugas->id)->with('success', 'Tugas berhasil dikumpulkan.');
+    }
+
+    public function download($id)
+    {
+        $submission = Submission::findOrFail($id);
+        
+        // Check if user owns this submission or is admin
+        if (auth()->id() !== $submission->user_id && auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!$submission->file_path) {
+            abort(404, 'File tidak ditemukan');
+        }
+
+        $filePath = storage_path('app/public/' . $submission->file_path);
+        
+        if (!file_exists($filePath)) {
+            abort(404, 'File tidak ditemukan');
+        }
+
+        return response()->download($filePath, $submission->file_name);
     }
 }

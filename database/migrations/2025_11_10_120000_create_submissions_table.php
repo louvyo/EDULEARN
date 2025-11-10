@@ -18,6 +18,9 @@ return new class extends Migration
             $table->foreignId('tugas_id')->constrained('tugas')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('file_path')->nullable();
+            $table->string('file_name')->nullable();
+            $table->string('file_type')->nullable(); // pdf, docx, image, etc
+            $table->integer('file_size')->nullable(); // in bytes
             $table->text('content')->nullable();
             $table->timestamp('submitted_at')->nullable();
             $table->string('status')->default('submitted');
