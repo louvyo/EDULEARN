@@ -6,7 +6,6 @@ use App\Models\Kelas;
 use App\Models\Tugas;
 use App\Models\Aktivitas;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class KelasController extends Controller
 {
@@ -15,20 +14,9 @@ class KelasController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
-
-        if ($user) {
-            $classes = $user->kelas()->paginate(9);
-
-            $latestActivities = Aktivitas::where('user_id', $user->id)
-                ->orderBy('waktu', 'desc')
-                ->limit(5)
-                ->get();
-        } else {
-            // Public fallback: show all classes and no user-specific activities
-            $classes = Kelas::paginate(9);
-            $latestActivities = collect();
-        }
+        // Auth removed: always show public listing and no per-user activities
+        $classes = Kelas::paginate(9);
+        $latestActivities = collect();
 
         return view('kelas.index', compact('classes', 'latestActivities'));
     }
@@ -38,35 +26,17 @@ class KelasController extends Controller
      */
     public function show($id)
     {
-        $user = Auth::user();
+        // Auth removed: show class without enforcing membership (public view)
+        $kelas = Kelas::with(['tugas', 'aktivitas'])->findOrFail($id);
 
-        if ($user) {
-            // Ensure the user belongs to this class
-            $kelas = $user->kelas()->with(['tugas', 'aktivitas'])->findOrFail($id);
+        // For public view, show tugas/aktivitas for the class (not user-specific)
+        $tugas = Tugas::where('kelas_id', $id)
+            ->orderBy('deadline', 'asc')
+            ->get();
 
-            // Get tugas for this user in this class
-            $tugas = Tugas::where('kelas_id', $id)
-                ->where('user_id', $user->id)
-                ->orderBy('deadline', 'asc')
-                ->get();
-
-            $aktivitas = Aktivitas::where('kelas_id', $id)
-                ->where('user_id', $user->id)
-                ->orderBy('waktu', 'desc')
-                ->get();
-        } else {
-            // Public fallback: show class without enforcing membership
-            $kelas = Kelas::with(['tugas', 'aktivitas'])->findOrFail($id);
-
-            // For public view, show tugas/aktivitas empty or generic
-            $tugas = Tugas::where('kelas_id', $id)
-                ->orderBy('deadline', 'asc')
-                ->get();
-
-            $aktivitas = Aktivitas::where('kelas_id', $id)
-                ->orderBy('waktu', 'desc')
-                ->get();
-        }
+        $aktivitas = Aktivitas::where('kelas_id', $id)
+            ->orderBy('waktu', 'desc')
+            ->get();
 
         return view('kelas.detail', compact('kelas', 'tugas', 'aktivitas'));
     }

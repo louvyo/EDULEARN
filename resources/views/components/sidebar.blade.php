@@ -30,7 +30,18 @@
         x-transition:leave-end="-translate-x-full"
         class="fixed w-64 bg-white border-r min-h-screen p-4 space-y-6 shadow-lg left-0 top-0 overflow-y-auto z-40">
 
-        {{-- Profile Overview removed (auth/profile UI cleaned) --}}
+        {{-- Profile Overview --}}
+        <div class="flex items-center space-x-3 mb-6 mt-8">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-900">Murid</p>
+                <p class="text-xs text-gray-500">Kelas X-A</p>
+            </div>
+        </div>
 
         {{-- Navigation Menu --}}
         <nav class="space-y-1">
