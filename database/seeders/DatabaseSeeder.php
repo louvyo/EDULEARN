@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             \Database\Seeders\KelasSeeder::class,
             \Database\Seeders\TugasSeeder::class,
             \Database\Seeders\AktivitasSeeder::class,
+            \Database\Seeders\NotificationSeeder::class,
         ]);
     }
 }

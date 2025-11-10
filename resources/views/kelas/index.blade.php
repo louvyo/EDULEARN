@@ -6,11 +6,36 @@
 <div class="space-y-8 max-w-7xl mx-auto">
     <!-- Header Section with Background -->
     <div class="animate-fade-in">
-        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg overflow-hidden">
-            <div class="p-8 text-white">
-                <div class="pl-8 lg:pl-0">
-                    <h1 class="text-4xl font-bold mb-2">Kelas Saya</h1>
-                    <p class="text-green-100 text-lg">Daftar kelas yang Anda ikuti.</p>
+        @php
+            $isGuru = isset($isGuru) && $isGuru;
+            $headerColor = $isGuru ? 'purple' : 'green';
+        @endphp
+        <div class="bg-gradient-to-br from-{{ $headerColor }}-500 to-{{ $headerColor }}-600 rounded-2xl shadow-lg overflow-hidden relative">
+            <!-- Decorative elements -->
+            <div class="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24"></div>
+            
+            <div class="p-8 text-white relative z-10">
+                <div class="pl-8 lg:pl-0 flex items-start justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <h1 class="text-4xl font-bold">{{ $isGuru ? '📚 Kelola Kelas' : '📚 Kelas Saya' }}</h1>
+                            @if($isGuru)
+                            <span class="px-3 py-1 bg-purple-700/50 backdrop-blur-sm rounded-full text-xs font-semibold">Guru Mode</span>
+                            @else
+                            <span class="px-3 py-1 bg-green-700/50 backdrop-blur-sm rounded-full text-xs font-semibold">Siswa Mode</span>
+                            @endif
+                        </div>
+                        <p class="text-{{ $headerColor }}-100 text-lg">{{ $isGuru ? 'Kelola semua kelas yang Anda ampu' : 'Daftar kelas yang Anda ikuti' }}</p>
+                    </div>
+                    
+                    @if($isGuru)
+                    <a href="{{ route('kelas.create') }}" class="hidden lg:flex items-center gap-2 px-6 py-3 bg-white text-purple-600 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Buat Kelas Baru
+                    </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -19,9 +44,9 @@
     <!-- Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Kelas Cards -->
-        <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
             @forelse($classes ?? [] as $class)
-                @include('kelas.card', ['class' => $class])
+                @include('kelas.card-compact', ['class' => $class])
             @empty
                 <div class="col-span-1 md:col-span-2">
                     <div class="bg-white/80 backdrop-blur-sm p-12 rounded-2xl border border-gray-100 text-center shadow-minimal">

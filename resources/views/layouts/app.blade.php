@@ -136,6 +136,48 @@
           }
         });
       }, 500); // Wait 500ms after page load
+      
+      // Countdown timers for upcoming tasks
+      function updateCountdowns() {
+        document.querySelectorAll('.countdown').forEach(function(el) {
+          var deadline = el.getAttribute('data-deadline');
+          if (!deadline) return;
+          
+          var deadlineDate = new Date(deadline);
+          var now = new Date();
+          var diff = deadlineDate - now;
+          
+          if (diff <= 0) {
+            el.textContent = 'Deadline terlewat';
+            el.classList.add('text-red-600', 'font-semibold');
+            return;
+          }
+          
+          var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+          
+          var countdownText = '';
+          if (days > 0) {
+            countdownText = days + 'h ' + hours + 'j ' + minutes + 'm ' + seconds + 'd';
+          } else if (hours > 0) {
+            countdownText = hours + 'j ' + minutes + 'm ' + seconds + 'd';
+          } else if (minutes > 0) {
+            countdownText = minutes + 'm ' + seconds + 'd';
+          } else {
+            countdownText = seconds + 'd';
+          }
+          
+          el.textContent = countdownText;
+        });
+      }
+      
+      // Update immediately
+      updateCountdowns();
+      
+      // Update every second
+      setInterval(updateCountdowns, 1000);
     });
 
     // Optional: Clear sidebar state on page refresh if you want fresh start

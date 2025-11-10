@@ -7,12 +7,16 @@ use App\Models\Kelas;
 use App\Models\Submission;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class TugasController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        $isGuru = $user && $user->role === 'guru';
+        
         // List tugas (optionally filter by kelas)
         $kelas = Kelas::all();
 
@@ -24,15 +28,18 @@ class TugasController extends Controller
 
         $tugas = $query->get();
 
-        return view('tugas.index', compact('tugas', 'kelas'));
+        return view('tugas.index', compact('tugas', 'kelas', 'isGuru'));
     }
 
     public function show($id)
     {
+        $user = Auth::user();
+        $isGuru = $user && $user->role === 'guru';
+        
         $tugas = Tugas::with(['kelas', 'user'])->findOrFail($id);
 
-        // get latest submission for current user (if auth exists)
-    $userId = auth()->id() ?? User::value('id');
+        // Get latest submission for current user (if auth exists)
+        $userId = auth()->id() ?? User::value('id');
 
         $submission = null;
         if ($userId) {
@@ -41,8 +48,17 @@ class TugasController extends Controller
                 ->latest('submitted_at')
                 ->first();
         }
+        
+        // For teachers, get all submissions for this assignment
+        $submissions = null;
+        if ($isGuru) {
+            $submissions = Submission::with('user')
+                ->where('tugas_id', $tugas->id)
+                ->orderBy('submitted_at', 'desc')
+                ->get();
+        }
 
-        return view('tugas.show', compact('tugas', 'submission'));
+        return view('tugas.show', compact('tugas', 'submission', 'isGuru', 'submissions'));
     }
 
     public function submit(Request $request, $id)
@@ -114,5 +130,143 @@ class TugasController extends Controller
         }
 
         return response()->download($filePath, $submission->file_name);
+    }
+    
+    /**
+     * Show the form for creating a new assignment (Guru only)
+     */
+    public function create()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $kelas = Kelas::all();
+        
+        return view('tugas.create', compact('kelas'));
+    }
+    
+    /**
+     * Store a newly created assignment (Guru only)
+     */
+    public function store(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'judul' => 'required|string|max:255',
+            'deskripsi' => 'required|string',
+            'deadline' => 'required|date',
+            'poin' => 'nullable|integer|min:0|max:100',
+        ]);
+        
+        $tugas = Tugas::create([
+            'kelas_id' => $request->kelas_id,
+            'user_id' => $user->id,
+            'judul' => $request->judul,
+            'deskripsi' => $request->deskripsi,
+            'deadline' => $request->deadline,
+            'poin' => $request->poin ?? 100,
+        ]);
+        
+        return redirect()->route('tugas.show', $tugas->id)
+            ->with('success', 'Tugas berhasil dibuat!');
+    }
+    
+    /**
+     * Show the form for editing an assignment (Guru only)
+     */
+    public function edit($id)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $tugas = Tugas::with('kelas')->findOrFail($id);
+        $kelas = Kelas::all();
+        
+        return view('tugas.edit', compact('tugas', 'kelas'));
+    }
+    
+    /**
+     * Update the specified assignment (Guru only)
+     */
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'judul' => 'required|string|max:255',
+            'deskripsi' => 'required|string',
+            'deadline' => 'required|date',
+            'poin' => 'nullable|integer|min:0|max:100',
+        ]);
+        
+        $tugas = Tugas::findOrFail($id);
+        
+        $tugas->update([
+            'kelas_id' => $request->kelas_id,
+            'judul' => $request->judul,
+            'deskripsi' => $request->deskripsi,
+            'deadline' => $request->deadline,
+            'poin' => $request->poin ?? 100,
+        ]);
+        
+        return redirect()->route('tugas.show', $tugas->id)
+            ->with('success', 'Tugas berhasil diperbarui!');
+    }
+    
+    /**
+     * Remove the specified assignment (Guru only)
+     */
+    public function destroy($id)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $tugas = Tugas::findOrFail($id);
+        $tugas->delete();
+        
+        return redirect()->route('tugas')
+            ->with('success', 'Tugas berhasil dihapus!');
+    }
+    
+    /**
+     * Grade a student submission (Guru only)
+     */
+    public function gradeSubmission(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $request->validate([
+            'grade' => 'required|numeric|min:0|max:100',
+            'feedback' => 'nullable|string|max:1000',
+        ]);
+        
+        $submission = Submission::findOrFail($id);
+        
+        $submission->update([
+            'grade' => $request->grade,
+            'feedback' => $request->feedback,
+            'graded_at' => now(),
+            'graded_by' => $user->id,
+        ]);
+        
+        return back()->with('success', 'Nilai berhasil diberikan!');
     }
 }

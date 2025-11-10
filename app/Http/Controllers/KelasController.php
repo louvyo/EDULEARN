@@ -6,6 +6,7 @@ use App\Models\Kelas;
 use App\Models\Tugas;
 use App\Models\Aktivitas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class KelasController extends Controller
 {
@@ -14,11 +15,20 @@ class KelasController extends Controller
      */
     public function index(Request $request)
     {
-        // Auth removed: always show public listing and no per-user activities
+        $user = Auth::user();
+        $isGuru = $user && $user->role === 'guru';
+        
+        // For teachers, show all classes they manage
+        // For students, show classes they're enrolled in (or all for now)
         $classes = Kelas::paginate(9);
-        $latestActivities = collect();
+        
+        // Get latest activities from all classes
+        $latestActivities = Aktivitas::with(['kelas', 'user'])
+            ->orderBy('waktu', 'desc')
+            ->limit(10)
+            ->get();
 
-        return view('kelas.index', compact('classes', 'latestActivities'));
+        return view('kelas.index', compact('classes', 'latestActivities', 'isGuru'));
     }
 
     /**
@@ -26,10 +36,12 @@ class KelasController extends Controller
      */
     public function show($id)
     {
-        // Auth removed: show class without enforcing membership (public view)
-        $kelas = Kelas::with(['tugas', 'aktivitas'])->findOrFail($id);
+        $user = Auth::user();
+        $isGuru = $user && $user->role === 'guru';
+        
+        $kelasModel = Kelas::with(['tugas', 'aktivitas'])->findOrFail($id);
 
-        // For public view, show tugas/aktivitas for the class (not user-specific)
+        // Show tugas/aktivitas for the class
         $tugas = Tugas::where('kelas_id', $id)
             ->orderBy('deadline', 'asc')
             ->get();
@@ -38,6 +50,148 @@ class KelasController extends Controller
             ->orderBy('waktu', 'desc')
             ->get();
 
-        return view('kelas.detail', compact('kelas', 'tugas', 'aktivitas'));
+        // Format data for view
+        $kelas = [
+            'id' => $kelasModel->id,
+            'name' => $kelasModel->nama,
+            'teacher' => $kelasModel->guru,
+            'semester' => $kelasModel->semester,
+            'color' => $kelasModel->warna,
+            'code' => 'KLS-' . str_pad($kelasModel->id, 4, '0', STR_PAD_LEFT),
+            'schedule' => 'Senin, 08:00 - 10:00',
+            'room' => 'Lab Komputer 1',
+            'assignments' => $tugas->map(function($t) {
+                return [
+                    'id' => $t->id,
+                    'title' => $t->judul,
+                    'description' => $t->deskripsi,
+                    'points' => $t->poin ?? 100,
+                    'time' => $t->created_at->diffForHumans(),
+                    'due_date' => $t->deadline->format('d M Y'),
+                ];
+            })->toArray(),
+            'materials' => [
+                [
+                    'title' => 'Slide Materi - ' . $kelasModel->nama,
+                    'description' => 'Materi pembelajaran untuk ' . $kelasModel->nama,
+                    'time' => '2 hari yang lalu',
+                    'file' => 'materi_' . strtolower(str_replace(' ', '_', $kelasModel->nama)) . '.pdf'
+                ]
+            ],
+        ];
+
+        return view('kelas.detail', compact('kelas', 'tugas', 'aktivitas', 'isGuru'));
+    }
+    
+    /**
+     * Show the form for creating a new class (Guru only)
+     */
+    public function create()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        // Generate random vibrant color with HSL
+        $hue = rand(0, 360); // Random hue (color)
+        $saturation = rand(60, 90); // High saturation for vibrant colors
+        $lightness = rand(45, 65); // Medium lightness for good contrast
+        
+        $defaultColor = "hsl($hue, $saturation%, $lightness%)";
+        
+        return view('kelas.create', compact('defaultColor'));
+    }
+    
+    /**
+     * Store a newly created class (Guru only)
+     */
+    public function store(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'semester' => 'required|string|max:100',
+            'warna' => 'required|string|max:50', // Accept any color format (hex, rgb, hsl)
+            'deskripsi' => 'nullable|string',
+        ]);
+        
+        $kelas = Kelas::create([
+            'nama' => $request->nama,
+            'guru' => $user->name, // Auto-fill from logged in user
+            'semester' => $request->semester,
+            'warna' => $request->warna,
+            'deskripsi' => $request->deskripsi,
+        ]);
+        
+        return redirect()->route('kelas.detail', $kelas->id)
+            ->with('success', 'Kelas berhasil dibuat!');
+    }
+    
+    /**
+     * Show the form for editing a class (Guru only)
+     */
+    public function edit($id)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $kelas = Kelas::findOrFail($id);
+        
+        return view('kelas.edit', compact('kelas'));
+    }
+    
+    /**
+     * Update the specified class (Guru only)
+     */
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'semester' => 'required|string|max:100',
+            'warna' => 'required|string|max:50', // Accept any color format
+            'deskripsi' => 'nullable|string',
+        ]);
+        
+        $kelas = Kelas::findOrFail($id);
+        
+        // Don't update 'guru' field - keep it as is
+        $kelas->update([
+            'nama' => $request->nama,
+            'semester' => $request->semester,
+            'warna' => $request->warna,
+            'deskripsi' => $request->deskripsi,
+        ]);
+        
+        return redirect()->route('kelas.detail', $kelas->id)
+            ->with('success', 'Kelas berhasil diperbarui!');
+    }
+    
+    /**
+     * Remove the specified class (Guru only)
+     */
+    public function destroy($id)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403, 'Unauthorized');
+        }
+        
+        $kelas = Kelas::findOrFail($id);
+        $kelas->delete();
+        
+        return redirect()->route('kelas')
+            ->with('success', 'Kelas berhasil dihapus!');
     }
 }

@@ -6,11 +6,19 @@
 <div class="space-y-8 max-w-7xl mx-auto">
     <!-- Header Section with Background -->
     <div class="animate-fade-in">
-        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg overflow-hidden">
-            <div class="p-8 text-white">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg overflow-hidden relative">
+            <!-- Decorative elements -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+            <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+            
+            <div class="p-8 text-white relative z-10">
                 <div class="pl-8 lg:pl-0">
-                    <h1 class="text-4xl font-bold mb-2">Dashboard</h1>
-                    <p class="text-blue-100 text-lg">Selamat datang kembali, Murid 👋</p>
+                    <div class="flex items-center gap-3 mb-3">
+                        <h1 class="text-4xl font-bold">👨‍🎓 Dashboard Siswa</h1>
+                        <span class="px-3 py-1 bg-blue-700/50 backdrop-blur-sm rounded-full text-xs font-semibold">Student Mode</span>
+                    </div>
+                    <p class="text-blue-100 text-lg">Selamat datang kembali, {{ auth()->user()->name }} 👋</p>
+                    <p class="text-blue-200 text-sm mt-1">Pantau perkembangan belajar dan tugas Anda</p>
                 </div>
             </div>
         </div>

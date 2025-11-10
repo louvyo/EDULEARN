@@ -47,6 +47,36 @@ class KelasSeeder extends Seeder
                 'tugas_total' => 6,
                 'progress' => 60,
             ],
+            [
+                'nama' => 'Kimia',
+                'deskripsi' => 'Mempelajari struktur atom, ikatan kimia, dan reaksi kimia dasar',
+                'guru' => 'Bu Dewi Kartika, S.Si',
+                'warna' => 'red',
+                'semester' => 'Semester Ganjil 2024/2025',
+                'pertemuan_total' => 12,
+                'tugas_total' => 7,
+                'progress' => 85,
+            ],
+            [
+                'nama' => 'Biologi',
+                'deskripsi' => 'Pengantar biologi sel, genetika, dan ekologi lingkungan',
+                'guru' => 'Pak Rizki Fadillah, M.Si',
+                'warna' => 'yellow',
+                'semester' => 'Semester Ganjil 2024/2025',
+                'pertemuan_total' => 11,
+                'tugas_total' => 9,
+                'progress' => 30,
+            ],
+            [
+                'nama' => 'Sejarah Indonesia',
+                'deskripsi' => 'Mempelajari sejarah perjuangan kemerdekaan dan perkembangan Indonesia modern',
+                'guru' => 'Bu Siti Nurhaliza, S.Pd',
+                'warna' => 'pink',
+                'semester' => 'Semester Ganjil 2024/2025',
+                'pertemuan_total' => 10,
+                'tugas_total' => 5,
+                'progress' => 55,
+            ],
         ];
 
         $created = [];

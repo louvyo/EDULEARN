@@ -6,44 +6,73 @@
 <div class="space-y-8 max-w-7xl mx-auto">
     <!-- Header Section with Background -->
     <div class="animate-fade-in">
-        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg overflow-hidden">
-            <div class="p-8 text-white">
+        @php
+            $isGuru = isset($isGuru) && $isGuru;
+            $headerColor = $isGuru ? 'orange' : 'purple';
+        @endphp
+        <div class="bg-gradient-to-br from-{{ $headerColor }}-500 to-{{ $headerColor }}-600 rounded-2xl shadow-lg overflow-hidden relative">
+            <!-- Decorative elements -->
+            <div class="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -ml-32 -mt-32"></div>
+            
+            <div class="p-8 text-white relative z-10">
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pl-8 lg:pl-0">
                     <div>
-                        <h1 class="text-4xl font-bold mb-2">Tugas</h1>
-                        <p class="text-purple-100 text-lg">Daftar tugas untuk semua kelas</p>
-                    </div>
-                    <!-- Filter Form -->
-                    <form method="get" class="flex items-center gap-3">
-                        <div class="relative">
-                            <select name="kelas_id" id="kelas_id" class="appearance-none bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-xl px-4 py-2.5 pr-10 text-sm font-medium hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200">
-                                <option value="" class="text-gray-900">Semua Kelas</option>
-                                @foreach($kelas as $k)
-                                    <option value="{{ $k->id }}" class="text-gray-900" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->name }}</option>
-                                @endforeach
-                            </select>
-                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
+                        <div class="flex items-center gap-3 mb-2">
+                            <h1 class="text-4xl font-bold">{{ $isGuru ? '📝 Kelola Tugas' : '📝 Tugas Saya' }}</h1>
+                            @if($isGuru)
+                            <span class="px-3 py-1 bg-orange-700/50 backdrop-blur-sm rounded-full text-xs font-semibold">Guru Mode</span>
+                            @else
+                            <span class="px-3 py-1 bg-purple-700/50 backdrop-blur-sm rounded-full text-xs font-semibold">Siswa Mode</span>
+                            @endif
                         </div>
-                        <button type="submit" class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300">
-                            Filter
-                        </button>
-                    </form>
+                        <p class="text-{{ $headerColor }}-100 text-lg">{{ $isGuru ? 'Kelola tugas untuk semua kelas' : 'Daftar tugas untuk semua kelas' }}</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <!-- Filter Form -->
+                        <form method="get" class="flex items-center gap-3">
+                            <div class="relative">
+                                <select name="kelas_id" id="kelas_id" class="appearance-none bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-xl px-4 py-2.5 pr-10 text-sm font-medium hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200">
+                                    <option value="" class="text-gray-900">Semua Kelas</option>
+                                    @foreach($kelas as $k)
+                                        <option value="{{ $k->id }}" class="text-gray-900" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
+                                    @endforeach
+                                </select>
+                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                            <button type="submit" class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300">
+                                Filter
+                            </button>
+                        </form>
+                        
+                        @if($isGuru)
+                        <a href="{{ route('tugas.create') }}" class="hidden lg:flex items-center gap-2 px-6 py-3 bg-white text-orange-600 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Buat Tugas
+                        </a>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    @if($tugas->isEmpty())
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-minimal p-12 text-center">
-            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-            <p class="text-gray-500 text-lg">Belum ada tugas.</p>
-        </div>
-    @else
-        <div class="space-y-5">
+    <!-- Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Tugas List -->
+        <div class="lg:col-span-2">
+            @if($tugas->isEmpty())
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-minimal p-12 text-center">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <p class="text-gray-500 text-lg">Belum ada tugas.</p>
+                </div>
+            @else
+                <div class="space-y-5">
             @foreach($tugas as $t)
             <a href="{{ route('tugas.show', $t->id) }}" class="block group bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-minimal hover:shadow-minimal-hover overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2 animate-fade-in-scale">
                 <div class="p-6">
@@ -64,7 +93,7 @@
                                             {{ optional($t->kelas)->name }}
                                         </span>
                                         <span class="text-gray-400">•</span>
-                                        <span class="text-sm text-gray-500">{{ optional($t->user)->name ?? 'Guru' }}</span>
+                                        <span class="text-sm text-gray-500">{{ $t->user->name ?? 'Guru' }}</span>
                                     </div>
                                     <p class="mt-3 text-sm text-gray-600 leading-relaxed">{{ $t->deskripsi }}</p>
                                 </div>
@@ -100,7 +129,65 @@
                 </div>
             </a>
             @endforeach
+                </div>
+            @endif
         </div>
-    @endif
+
+        <!-- Sidebar: Tugas Mendatang -->
+        <aside class="lg:col-span-1">
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-minimal p-6 animate-fade-in-scale sticky top-24" style="animation-delay: 200ms;">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Tugas Mendatang
+                </h3>
+                <div class="space-y-3">
+                    @php
+                        $upcomingTugas = $tugas->filter(function($t) {
+                            return $t->deadline && $t->deadline->isFuture();
+                        })->sortBy('deadline')->take(5);
+                    @endphp
+                    
+                    @forelse($upcomingTugas as $ut)
+                        @php
+                            $daysLeft = now()->diffInDays($ut->deadline, false);
+                            $isUrgent = $daysLeft <= 2;
+                            $borderColor = $isUrgent ? 'border-red-500' : 'border-purple-500';
+                            $bgColor = $isUrgent ? 'hover:bg-red-50/50' : 'hover:bg-purple-50/50';
+                        @endphp
+                        <a href="{{ route('tugas.show', $ut->id) }}" class="block border-l-2 {{ $borderColor }} pl-4 py-2 {{ $bgColor }} rounded-r transition-colors duration-200">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-semibold text-gray-900 text-sm truncate">{{ $ut->judul }}</div>
+                                    <div class="text-xs text-gray-500 mt-1">{{ optional($ut->kelas)->name }}</div>
+                                </div>
+                                @if($isUrgent)
+                                    <span class="flex-shrink-0 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full">
+                                        Urgent
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <svg class="w-3.5 h-3.5 {{ $isUrgent ? 'text-red-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span class="text-xs {{ $isUrgent ? 'text-red-600 font-semibold' : 'text-gray-600' }} countdown" data-deadline="{{ $ut->deadline->toIso8601String() }}">
+                                    Menghitung...
+                                </span>
+                            </div>
+                        </a>
+                    @empty
+                        <div class="text-center py-8">
+                            <svg class="w-12 h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-sm text-gray-500">Tidak ada tugas mendatang</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </aside>
+    </div>
 </div>
 @endsection
