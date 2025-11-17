@@ -73,9 +73,11 @@ class EnrollmentController extends Controller
         if ($guru) {
             Notification::create([
                 'user_id' => $guru->id,
+                'kelas_id' => $kelas->id,
                 'title' => 'Permintaan Join Kelas',
                 'message' => Auth::user()->name . ' ingin bergabung ke kelas ' . $kelas->nama,
                 'type' => 'enrollment',
+                'link' => route('kelas.students', $kelas->id),
                 'is_read' => false,
             ]);
         }
@@ -125,9 +127,11 @@ class EnrollmentController extends Controller
         if ($student) {
             Notification::create([
                 'user_id' => $student->id,
+                'kelas_id' => $kelas->id,
                 'title' => 'Join Kelas Disetujui',
                 'message' => 'Anda telah diterima di kelas ' . $kelas->nama,
                 'type' => 'enrollment',
+                'link' => route('kelas.detail', $kelas->id),
                 'is_read' => false,
             ]);
         }
@@ -158,9 +162,11 @@ class EnrollmentController extends Controller
         if ($student) {
             Notification::create([
                 'user_id' => $student->id,
+                'kelas_id' => $kelas->id,
                 'title' => 'Join Kelas Ditolak',
                 'message' => 'Permintaan join ke kelas ' . $kelas->nama . ' ditolak.',
                 'type' => 'enrollment',
+                'link' => route('kelas.join'),
                 'is_read' => false,
             ]);
         }
@@ -211,9 +217,11 @@ class EnrollmentController extends Controller
         if ($student) {
             Notification::create([
                 'user_id' => $student->id,
+                'kelas_id' => $kelas->id,
                 'title' => 'Dikeluarkan dari Kelas',
                 'message' => 'Anda telah dikeluarkan dari kelas ' . $kelas->nama . '. Semua data pengumpulan tugas Anda di kelas ini telah dihapus.',
                 'type' => 'enrollment',
+                'link' => route('kelas.join'),
                 'is_read' => false,
             ]);
         }

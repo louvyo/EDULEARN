@@ -8,15 +8,22 @@ use App\Http\Controllers\TugasController;
 use App\Http\Controllers\NilaiController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\AktivitasController;
+use App\Http\Controllers\ProfileController;
+use Laravel\Socialite\Facades\Socialite;
 
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// OAuth: Google
+Route::get('/auth/google', [AuthController::class, 'googleRedirect'])->name('oauth.google.redirect');
+Route::get('/auth/google/callback', [AuthController::class, 'googleCallback'])->name('oauth.google.callback');
+
 // Optional: Registration Routes (uncomment if needed)
-// Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-// Route::post('/register', [AuthController::class, 'register']);
+Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
 
 // Protected Routes - Require Authentication
 Route::middleware(['auth'])->group(function () {
@@ -50,6 +57,16 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/tugas/{id}', [TugasController::class, 'destroy'])->name('tugas.destroy');
     Route::get('/tugas/{id}', [TugasController::class, 'show'])->name('tugas.show');
     
+    // Aktivitas/Materi routes
+    Route::get('/kelas/{kelasId}/aktivitas/create', [AktivitasController::class, 'create'])->name('aktivitas.create');
+    Route::post('/kelas/{kelasId}/aktivitas', [AktivitasController::class, 'store'])->name('aktivitas.store');
+    Route::get('/aktivitas/{id}/edit', [AktivitasController::class, 'edit'])->name('aktivitas.edit');
+    Route::put('/aktivitas/{id}', [AktivitasController::class, 'update'])->name('aktivitas.update');
+    Route::get('/aktivitas/{id}/download', [AktivitasController::class, 'download'])
+        ->middleware('signed')
+        ->name('aktivitas.download');
+    Route::delete('/aktivitas/{id}', [AktivitasController::class, 'destroy'])->name('aktivitas.destroy');
+    
     // Grade submission
     Route::post('/submissions/{id}/grade', [TugasController::class, 'gradeSubmission'])->name('submissions.grade');
 
@@ -67,4 +84,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+
+    // Profile
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
 });

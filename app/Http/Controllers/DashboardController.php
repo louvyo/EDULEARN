@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Kelas;
 use App\Models\Tugas;
 use App\Models\Aktivitas;
@@ -34,12 +35,24 @@ class DashboardController extends Controller
      */
     private function dashboardGuru()
     {
-        $totalKelas = Kelas::count();
-        $totalTugas = Tugas::count();
-        $totalSiswa = \App\Models\User::where('role', 'siswa')->count();
+        $user = Auth::user();
+        $kelasIds = $user->kelasAsGuru()->pluck('kelas.id');
+
+        $totalKelas = $kelasIds->count();
+        $totalTugas = Tugas::whereIn('kelas_id', $kelasIds)->count();
+        
+        // Hitung siswa yang sudah bergabung di kelas (bukan semua siswa di sistem)
+        $totalSiswa = DB::table('user_kelas')
+            ->whereIn('kelas_id', $kelasIds)
+            ->where('role', 'siswa')
+            ->where('status', 'approved')
+            ->distinct('user_id')
+            ->count('user_id');
         
         // Tugas yang perlu dinilai (tugas yang sudah dikumpulkan tapi belum dinilai)
-        $tugasPerluDinilai = \App\Models\Submission::whereNull('grade')->count();
+        $tugasPerluDinilai = \App\Models\Submission::whereNull('grade')
+            ->whereIn('tugas_id', Tugas::whereIn('kelas_id', $kelasIds)->pluck('id'))
+            ->count();
 
         $stats = [
             ['label' => 'Total Kelas', 'value' => $totalKelas, 'color' => 'blue', 'icon' => 'book', 'trend' => ''],
@@ -49,10 +62,14 @@ class DashboardController extends Controller
         ];
 
         // Kelas yang diampu guru
-        $kelasSaya = Kelas::orderBy('created_at', 'desc')->limit(6)->get();
+        $kelasSaya = Kelas::whereIn('id', $kelasIds)
+            ->orderBy('created_at', 'desc')
+            ->limit(6)
+            ->get();
 
         // Tugas terbaru yang dibuat
         $tugasTerbaru = Tugas::with('kelas')
+            ->whereIn('kelas_id', $kelasIds)
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();

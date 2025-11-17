@@ -61,7 +61,7 @@ class TugasController extends Controller
         $tugas = Tugas::with(['kelas', 'user'])->findOrFail($id);
 
         // Get latest submission for current user (if auth exists)
-        $userId = auth()->id() ?? User::value('id');
+        $userId = \Illuminate\Support\Facades\Auth::id() ?? User::value('id');
 
         $submission = null;
         if ($userId) {
@@ -87,9 +87,17 @@ class TugasController extends Controller
     {
         $tugas = Tugas::findOrFail($id);
 
+        // Normalize input: trim whitespace-only content
+        $request->merge([
+            'content' => is_string($request->input('content')) ? trim($request->input('content')) : $request->input('content')
+        ]);
+
         $request->validate([
-            'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,txt,zip,jpg,jpeg,png,ppt,pptx,xls,xlsx',
-            'content' => 'nullable|string|max:2000',
+            'file' => 'required_without:content|nullable|file|max:10240|mimes:pdf,doc,docx,txt,zip,jpg,jpeg,png,ppt,pptx,xls,xlsx',
+            'content' => 'required_without:file|nullable|string|max:2000',
+        ], [
+            'file.required_without' => 'Harap unggah file atau isi catatan.',
+            'content.required_without' => 'Harap unggah file atau isi catatan.',
         ]);
 
         $userId = auth()->id() ?? User::value('id');
@@ -97,6 +105,15 @@ class TugasController extends Controller
         if (! $userId) {
             return redirect()->route('tugas.show', $tugas->id)
                 ->with('error', 'Tidak ada user untuk dikaitkan dengan pengumpulan.');
+        }
+
+        // Prevent duplicate submissions per user per assignment
+        $alreadySubmitted = Submission::where('tugas_id', $tugas->id)
+            ->where('user_id', $userId)
+            ->exists();
+        if ($alreadySubmitted) {
+            return redirect()->route('tugas.show', $tugas->id)
+                ->with('error', 'Anda sudah mengumpulkan tugas ini.');
         }
 
         $filePath = null;
@@ -125,7 +142,7 @@ class TugasController extends Controller
             'file_type' => $fileType,
             'file_size' => $fileSize,
             'content' => $request->input('content'),
-            'submitted_at' => now(),
+            'submitted_at' => now()->setTimezone('Asia/Makassar'),
             'status' => $status,
         ]);
 
@@ -136,8 +153,20 @@ class TugasController extends Controller
     {
         $submission = Submission::findOrFail($id);
         
-        // Check if user owns this submission or is admin
-        if (auth()->id() !== $submission->user_id && auth()->user()->role !== 'admin') {
+        // Check if user owns this submission or is class teacher
+        $user = Auth::user();
+        if (!$user) abort(403, 'Unauthorized');
+
+        $kelas = optional($submission->tugas)->kelas;
+        $isTeacher = false;
+        if ($kelas) {
+            $isTeacher = $kelas->users()
+                ->where('user_id', $user->id)
+                ->where('user_kelas.role', 'guru')
+                ->exists();
+        }
+
+        if ($user->id !== $submission->user_id && !$isTeacher) {
             abort(403, 'Unauthorized');
         }
 
@@ -203,6 +232,7 @@ class TugasController extends Controller
         foreach ($students as $student) {
             Notification::create([
                 'user_id' => $student->id,
+                'kelas_id' => $kelas->id,
                 'type' => 'tugas_baru',
                 'title' => 'Tugas Baru: ' . $tugas->judul,
                 'message' => 'Guru ' . $user->name . ' membuat tugas baru di kelas ' . $kelas->nama,
@@ -308,6 +338,7 @@ class TugasController extends Controller
         $tugas = $submission->tugas;
         Notification::create([
             'user_id' => $submission->user_id,
+            'kelas_id' => $tugas->kelas_id,
             'type' => 'nilai_keluar',
             'title' => 'Tugas Dinilai',
             'message' => 'Tugas "' . $tugas->judul . '" telah dinilai. Nilai Anda: ' . $request->grade,

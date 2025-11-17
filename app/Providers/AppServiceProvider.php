@@ -22,8 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Note: Server timezone is now set to Asia/Jakarta in config/app.php
-        // So all times are already in WIB, no conversion needed for Indonesian users
+        // Note: Server timezone is now set to Asia/Makassar in config/app.php
+        // So all times are already in WITA, no conversion needed for Indonesian users
         
         // Register Blade directives for datetime display
         \Illuminate\Support\Facades\Blade::directive('formatDateTime', function ($expression) {

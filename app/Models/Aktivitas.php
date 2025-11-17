@@ -15,7 +15,9 @@ class Aktivitas extends Model
         'judul',
         'deskripsi',
         'kelas_id',
-        'waktu'
+        'waktu',
+        'tipe',
+        'file_path'
     ];
 
     protected $casts = [

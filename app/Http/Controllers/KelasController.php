@@ -18,13 +18,17 @@ class KelasController extends Controller
         $user = Auth::user();
         $isGuru = $user && $user->role === 'guru';
         
-        // For teachers, show all classes
+        // For teachers, show only classes they teach (via pivot as 'guru')
         // For students, show only classes they're enrolled in (approved)
         if ($isGuru) {
-            $classes = Kelas::orderBy('created_at', 'desc')->paginate(9);
-            
-            // Get latest activities from all classes
+            $kelasIds = $user->kelasAsGuru()->pluck('kelas.id');
+            $classes = Kelas::whereIn('id', $kelasIds)
+                ->orderBy('created_at', 'desc')
+                ->paginate(9);
+
+            // Get latest activities only from teacher's classes
             $latestActivities = Aktivitas::with(['kelas', 'user'])
+                ->whereIn('kelas_id', $kelasIds)
                 ->orderBy('waktu', 'desc')
                 ->limit(10)
                 ->get();
@@ -66,6 +70,15 @@ class KelasController extends Controller
         $user = Auth::user();
         $isGuru = $user && $user->role === 'guru';
         
+        // Authorization: user must belong to the class (as guru or approved siswa)
+        $allowed = $isGuru
+            ? $user->kelasAsGuru()->where('kelas.id', $id)->exists()
+            : $user->kelasAsSiswa()->where('kelas.id', $id)->exists();
+
+        if (!$allowed) {
+            abort(403, 'Anda tidak memiliki akses ke kelas ini');
+        }
+
         $kelasModel = Kelas::with(['tugas', 'aktivitas'])->findOrFail($id);
 
         // Show tugas/aktivitas for the class
@@ -98,14 +111,26 @@ class KelasController extends Controller
                     'due_date' => $t->deadline->format('d M Y'),
                 ];
             })->toArray(),
-            'materials' => [
-                [
-                    'title' => 'Slide Materi - ' . $kelasModel->nama,
-                    'description' => 'Materi pembelajaran untuk ' . $kelasModel->nama,
-                    'time' => '2 hari yang lalu',
-                    'file' => 'materi_' . strtolower(str_replace(' ', '_', $kelasModel->nama)) . '.pdf'
-                ]
-            ],
+            'materials' => $aktivitas->where('tipe', 'materi')->map(function($a) {
+                return [
+                    'id' => $a->id,
+                    'title' => $a->judul,
+                    'description' => $a->deskripsi ?? 'Materi pembelajaran',
+                    'time' => $a->created_at->diffForHumans(),
+                    'file' => basename($a->file_path ?? '-'),
+                    'file_path' => $a->file_path,
+                ];
+            })->values()->toArray(),
+            'announcements' => $aktivitas->where('tipe', 'pengumuman')->map(function($a) {
+                return [
+                    'id' => $a->id,
+                    'title' => $a->judul,
+                    'description' => $a->deskripsi ?? '',
+                    'time' => $a->created_at->diffForHumans(),
+                    'file' => basename($a->file_path ?? '-'),
+                    'file_path' => $a->file_path,
+                ];
+            })->values()->toArray(),
         ];
 
         return view('kelas.detail', compact('kelas', 'tugas', 'aktivitas', 'isGuru'));
@@ -154,6 +179,12 @@ class KelasController extends Controller
             'semester' => $request->semester,
             'warna' => $request->warna,
             'deskripsi' => $request->deskripsi,
+        ]);
+        
+        // Attach teacher as owner in pivot
+        $kelas->users()->attach($user->id, [
+            'role' => 'guru',
+            'status' => 'approved',
         ]);
         
         return redirect()->route('kelas.detail', $kelas->id)
