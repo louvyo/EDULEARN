@@ -34,43 +34,6 @@
     @endphp
 
     <div class="space-y-4">
-        {{-- Success Message --}}
-        @if (session('success'))
-            <div class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
-                <svg class="w-5 h-5 text-green-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                    <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
-                </div>
-                <button onclick="this.parentElement.remove()"
-                    class="ml-auto text-green-600 hover:text-green-800 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        @endif
-
-        {{-- Error Message --}}
-        @if (session('error'))
-            <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
-                <svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M12 2a10 10 0 100 20 10 10 0 000-20z" />
-                </svg>
-                <div>
-                    <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
-                </div>
-                <button onclick="this.parentElement.remove()"
-                    class="ml-auto text-red-600 hover:text-red-800 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        @endif
 
         {{-- Header Kelas --}}
         <div class="animate-fade-in">
@@ -141,8 +104,7 @@
                                         </a>
                                         <a href="{{ route('kelas.edit', $kelas['id']) }}"
                                             class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
@@ -654,7 +616,7 @@
                         Mendatang
                     </h2>
                     <div class="space-y-2">
-                        @foreach ($kelas['assignments'] ?? [] as $assignment)
+                        @forelse ($kelas['assignments'] ?? [] as $assignment)
                             <div class="flex items-start gap-2 p-2.5 rounded-xl transition-all duration-300 border"
                                 style="background: linear-gradient(90deg, {{ $gradientColors['lighter'] }}, transparent); border-color: {{ $gradientColors['light'] }};">
                                 <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
@@ -670,12 +632,24 @@
                                     <p class="text-xs text-gray-600 mt-0.5">Batas: {{ $assignment['due_date'] }}</p>
                                 </div>
                             </div>
-                        @endforeach
+                        @empty
+                            <div class="text-center py-6">
+                                <svg class="w-12 h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p class="text-xs text-gray-500">Tidak ada tugas mendatang</p>
+                            </div>
+                        @endforelse
                     </div>
-                    <a href="#" class="mt-3 block text-center text-xs font-semibold transition-colors duration-200"
-                        style="color: {{ $gradientColors['to'] }};">
-                        Lihat semua →
-                    </a>
+                    @if (count($kelas['assignments'] ?? []) > 0)
+                        <a href="#"
+                            class="mt-3 block text-center text-xs font-semibold transition-colors duration-200"
+                            style="color: {{ $gradientColors['to'] }};">
+                            Lihat semua →
+                        </a>
+                    @endif
                 </div>
 
                 {{-- Class Information --}}

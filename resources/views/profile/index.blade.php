@@ -201,7 +201,7 @@
                                     </label>
                                     <span
                                         class="px-3 py-1 rounded-full text-xs font-bold {{ $user->role === 'guru' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
-                                        {{ $user->role === 'guru' ? '👨‍🏫 Guru' : '👨‍🎓 Siswa' }}
+                                        {{ $user->role === 'guru' ? '👨‍🏫 Teacher' : '👨‍🎓 Student' }}
                                     </span>
                                 </div>
                                 <p class="text-xs text-gray-500">Role akun Anda saat ini</p>

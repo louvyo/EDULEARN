@@ -268,7 +268,7 @@
                             <p class="text-sm font-semibold text-gray-900">{{ auth()->user()->name }}</p>
                             <p class="text-xs text-gray-600">{{ auth()->user()->email }}</p>
                             <p class="text-xs text-{{ $mobileColor }}-600 font-medium">
-                                {{ $isGuru ? '👨‍🏫 Guru' : '👨‍🎓 Siswa' }}</p>
+                                {{ $isGuru ? '👨‍🏫 Teacher' : '👨‍🎓 Student' }}</p>
                         </div>
                     </div>
                 </div>

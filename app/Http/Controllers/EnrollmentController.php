@@ -71,15 +71,25 @@ class EnrollmentController extends Controller
         // Cari user guru berdasarkan nama
         $guru = User::where('name', $kelas->guru)->where('role', 'guru')->first();
         if ($guru) {
-            Notification::create([
-                'user_id' => $guru->id,
-                'kelas_id' => $kelas->id,
-                'title' => 'Permintaan Join Kelas',
-                'message' => Auth::user()->name . ' ingin bergabung ke kelas ' . $kelas->nama,
-                'type' => 'enrollment',
-                'link' => route('kelas.students', $kelas->id),
-                'is_read' => false,
-            ]);
+            // Check if notification already exists
+            $existingNotif = Notification::where('user_id', $guru->id)
+                ->where('kelas_id', $kelas->id)
+                ->where('type', 'enrollment')
+                ->where('message', 'LIKE', '%' . Auth::user()->name . '%')
+                ->where('created_at', '>=', now()->subHour())
+                ->exists();
+            
+            if (!$existingNotif) {
+                Notification::create([
+                    'user_id' => $guru->id,
+                    'kelas_id' => $kelas->id,
+                    'title' => 'Permintaan Join Kelas',
+                    'message' => Auth::user()->name . ' ingin bergabung ke kelas ' . $kelas->nama,
+                    'type' => 'enrollment',
+                    'link' => route('kelas.students', $kelas->id),
+                    'is_read' => false,
+                ]);
+            }
         }
 
         return redirect()->route('dashboard')->with('success', 'Permintaan join kelas berhasil dikirim. Menunggu persetujuan guru.');
@@ -125,15 +135,24 @@ class EnrollmentController extends Controller
         // Kirim notifikasi ke siswa
         $student = User::find($userId);
         if ($student) {
-            Notification::create([
-                'user_id' => $student->id,
-                'kelas_id' => $kelas->id,
-                'title' => 'Join Kelas Disetujui',
-                'message' => 'Anda telah diterima di kelas ' . $kelas->nama,
-                'type' => 'enrollment',
-                'link' => route('kelas.detail', $kelas->id),
-                'is_read' => false,
-            ]);
+            // Check if notification already exists
+            $existingNotif = Notification::where('user_id', $student->id)
+                ->where('kelas_id', $kelas->id)
+                ->where('type', 'enrollment')
+                ->where('title', 'Join Kelas Disetujui')
+                ->exists();
+            
+            if (!$existingNotif) {
+                Notification::create([
+                    'user_id' => $student->id,
+                    'kelas_id' => $kelas->id,
+                    'title' => 'Join Kelas Disetujui',
+                    'message' => 'Anda telah diterima di kelas ' . $kelas->nama,
+                    'type' => 'enrollment',
+                    'link' => route('kelas.detail', $kelas->id),
+                    'is_read' => false,
+                ]);
+            }
         }
 
         return back()->with('success', 'Siswa berhasil diterima di kelas.');
@@ -160,15 +179,24 @@ class EnrollmentController extends Controller
         // Kirim notifikasi ke siswa
         $student = User::find($userId);
         if ($student) {
-            Notification::create([
-                'user_id' => $student->id,
-                'kelas_id' => $kelas->id,
-                'title' => 'Join Kelas Ditolak',
-                'message' => 'Permintaan join ke kelas ' . $kelas->nama . ' ditolak.',
-                'type' => 'enrollment',
-                'link' => route('kelas.join'),
-                'is_read' => false,
-            ]);
+            // Check if notification already exists
+            $existingNotif = Notification::where('user_id', $student->id)
+                ->where('kelas_id', $kelas->id)
+                ->where('type', 'enrollment')
+                ->where('title', 'Join Kelas Ditolak')
+                ->exists();
+            
+            if (!$existingNotif) {
+                Notification::create([
+                    'user_id' => $student->id,
+                    'kelas_id' => $kelas->id,
+                    'title' => 'Join Kelas Ditolak',
+                    'message' => 'Permintaan join ke kelas ' . $kelas->nama . ' ditolak.',
+                    'type' => 'enrollment',
+                    'link' => route('kelas.join'),
+                    'is_read' => false,
+                ]);
+            }
         }
 
         return back()->with('success', 'Permintaan enrollment ditolak.');
@@ -215,15 +243,25 @@ class EnrollmentController extends Controller
         // Kirim notifikasi ke siswa
         $student = User::find($userId);
         if ($student) {
-            Notification::create([
-                'user_id' => $student->id,
-                'kelas_id' => $kelas->id,
-                'title' => 'Dikeluarkan dari Kelas',
-                'message' => 'Anda telah dikeluarkan dari kelas ' . $kelas->nama . '. Semua data pengumpulan tugas Anda di kelas ini telah dihapus.',
-                'type' => 'enrollment',
-                'link' => route('kelas.join'),
-                'is_read' => false,
-            ]);
+            // Check if notification already exists
+            $existingNotif = Notification::where('user_id', $student->id)
+                ->where('kelas_id', $kelas->id)
+                ->where('type', 'enrollment')
+                ->where('title', 'Dikeluarkan dari Kelas')
+                ->where('created_at', '>=', now()->subHour())
+                ->exists();
+            
+            if (!$existingNotif) {
+                Notification::create([
+                    'user_id' => $student->id,
+                    'kelas_id' => $kelas->id,
+                    'title' => 'Dikeluarkan dari Kelas',
+                    'message' => 'Anda telah dikeluarkan dari kelas ' . $kelas->nama . '. Semua data pengumpulan tugas Anda di kelas ini telah dihapus.',
+                    'type' => 'enrollment',
+                    'link' => route('kelas.join'),
+                    'is_read' => false,
+                ]);
+            }
         }
 
         return back()->with('success', 'Siswa berhasil dikeluarkan dari kelas dan semua data submission mereka telah dihapus.');

@@ -101,7 +101,10 @@ class KelasController extends Controller
             'code' => 'KLS-' . str_pad($kelasModel->id, 4, '0', STR_PAD_LEFT),
             'schedule' => 'Senin, 08:00 - 10:00',
             'room' => 'Lab Komputer 1',
-            'assignments' => $tugas->map(function($t) {
+            'assignments' => $tugas->filter(function($t) {
+                // Only show upcoming assignments (deadline hasn't passed)
+                return $t->deadline && $t->deadline->isFuture();
+            })->map(function($t) {
                 return [
                     'id' => $t->id,
                     'title' => $t->judul,
@@ -110,7 +113,7 @@ class KelasController extends Controller
                     'time' => $t->created_at->diffForHumans(),
                     'due_date' => $t->deadline->format('d M Y'),
                 ];
-            })->toArray(),
+            })->values()->toArray(),
             'materials' => $aktivitas->where('tipe', 'materi')->map(function($a) {
                 return [
                     'id' => $a->id,

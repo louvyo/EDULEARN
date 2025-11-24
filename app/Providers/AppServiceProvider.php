@@ -47,11 +47,16 @@ class AppServiceProvider extends ServiceProvider
                 
                 // Filter classes based on user role
                 if ($isGuru) {
-                    // Guru: show all classes (or owned classes in the future)
-                    $sidebarClasses = \App\Models\Kelas::orderBy('nama', 'asc')->limit(5)->get();
+                    // Guru: show only classes they manage
+                    $sidebarClasses = $user->kelasAsGuru()
+                        ->orderBy('kelas.nama', 'asc')
+                        ->limit(5)
+                        ->get();
                     
-                    // Upcoming tasks from all classes
+                    // Upcoming tasks from teacher's classes only
+                    $kelasIds = $sidebarClasses->pluck('id');
                     $upcomingTasks = Tugas::with(['kelas'])
+                        ->whereIn('kelas_id', $kelasIds)
                         ->whereNotNull('deadline')
                         ->where('deadline', '>', now())
                         ->orderBy('deadline', 'asc')

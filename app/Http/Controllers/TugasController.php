@@ -15,14 +15,18 @@ class TugasController extends Controller
 {
     public function index()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $isGuru = $user && $user->role === 'guru';
         
         // Filter classes and assignments based on role
         if ($isGuru) {
-            // Guru: show all classes and all assignments
-            $kelas = Kelas::all();
-            $query = Tugas::with(['kelas', 'user'])->orderBy('deadline', 'asc');
+            // Guru: show classes they manage and their assignments
+            $kelas = $user->kelasAsGuru()->get();
+            $kelasIds = $kelas->pluck('id');
+            $query = Tugas::with(['kelas', 'user'])
+                ->whereIn('kelas_id', $kelasIds)
+                ->orderBy('deadline', 'asc');
         } else {
             // Siswa: only show enrolled classes and their assignments
             $kelas = $user->kelasAsSiswa()->get();
@@ -61,7 +65,7 @@ class TugasController extends Controller
         $tugas = Tugas::with(['kelas', 'user'])->findOrFail($id);
 
         // Get latest submission for current user (if auth exists)
-        $userId = \Illuminate\Support\Facades\Auth::id() ?? User::value('id');
+        $userId = Auth::id();
 
         $submission = null;
         if ($userId) {
@@ -100,7 +104,7 @@ class TugasController extends Controller
             'content.required_without' => 'Harap unggah file atau isi catatan.',
         ]);
 
-        $userId = auth()->id() ?? User::value('id');
+        $userId = Auth::id();
 
         if (! $userId) {
             return redirect()->route('tugas.show', $tugas->id)
@@ -188,12 +192,14 @@ class TugasController extends Controller
      */
     public function create()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         if (!$user || $user->role !== 'guru') {
             abort(403, 'Unauthorized');
         }
         
-        $kelas = Kelas::all();
+        // Only show classes managed by this teacher
+        $kelas = $user->kelasAsGuru()->get();
         
         return view('tugas.create', compact('kelas'));
     }
@@ -230,15 +236,23 @@ class TugasController extends Controller
         $students = $kelas->students()->get();
         
         foreach ($students as $student) {
-            Notification::create([
-                'user_id' => $student->id,
-                'kelas_id' => $kelas->id,
-                'type' => 'tugas_baru',
-                'title' => 'Tugas Baru: ' . $tugas->judul,
-                'message' => 'Guru ' . $user->name . ' membuat tugas baru di kelas ' . $kelas->nama,
-                'link' => route('tugas.show', $tugas->id),
-                'is_read' => false,
-            ]);
+            // Check if notification already exists
+            $existingNotif = Notification::where('user_id', $student->id)
+                ->where('type', 'tugas_baru')
+                ->where('link', route('tugas.show', $tugas->id))
+                ->exists();
+            
+            if (!$existingNotif) {
+                Notification::create([
+                    'user_id' => $student->id,
+                    'kelas_id' => $kelas->id,
+                    'type' => 'tugas_baru',
+                    'title' => 'Tugas Baru: ' . $tugas->judul,
+                    'message' => 'Guru ' . $user->name . ' membuat tugas baru di kelas ' . $kelas->nama,
+                    'link' => route('tugas.show', $tugas->id),
+                    'is_read' => false,
+                ]);
+            }
         }
         
         return redirect()->route('tugas.show', $tugas->id)
@@ -250,13 +264,14 @@ class TugasController extends Controller
      */
     public function edit($id)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         if (!$user || $user->role !== 'guru') {
             abort(403, 'Unauthorized');
         }
         
         $tugas = Tugas::with('kelas')->findOrFail($id);
-        $kelas = Kelas::all();
+        $kelas = $user->kelasAsGuru()->get();
         
         return view('tugas.edit', compact('tugas', 'kelas'));
     }
@@ -336,15 +351,25 @@ class TugasController extends Controller
         
         // Kirim notifikasi ke siswa
         $tugas = $submission->tugas;
-        Notification::create([
-            'user_id' => $submission->user_id,
-            'kelas_id' => $tugas->kelas_id,
-            'type' => 'nilai_keluar',
-            'title' => 'Tugas Dinilai',
-            'message' => 'Tugas "' . $tugas->judul . '" telah dinilai. Nilai Anda: ' . $request->grade,
-            'link' => route('tugas.show', $tugas->id),
-            'is_read' => false,
-        ]);
+        
+        // Check if notification already exists
+        $existingNotif = Notification::where('user_id', $submission->user_id)
+            ->where('type', 'nilai_keluar')
+            ->where('link', route('tugas.show', $tugas->id))
+            ->where('created_at', '>=', now()->subMinutes(5))
+            ->exists();
+        
+        if (!$existingNotif) {
+            Notification::create([
+                'user_id' => $submission->user_id,
+                'kelas_id' => $tugas->kelas_id,
+                'type' => 'nilai_keluar',
+                'title' => 'Tugas Dinilai',
+                'message' => 'Tugas "' . $tugas->judul . '" telah dinilai. Nilai Anda: ' . $request->grade,
+                'link' => route('tugas.show', $tugas->id),
+                'is_read' => false,
+            ]);
+        }
         
         return back()->with('success', 'Nilai berhasil diberikan!');
     }
