@@ -54,6 +54,7 @@
                 </div>
                 <div class="flex-1">
                     <p class="text-xl font-black text-gray-900 tracking-tight">EduLearn</p>
+                    <p class="text-xs font-semibold text-gray-600">SMK HIDAYATUL MUSLIMIN</p>
                     <p class="text-xs font-semibold text-blue-600/80">✨ Learning Hub</p>
                 </div>
             </div>

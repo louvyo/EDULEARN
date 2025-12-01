@@ -23,6 +23,7 @@
                 <div class="ml-3">
                     <span
                         class="text-xl font-extrabold bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:via-indigo-700 group-hover:to-purple-700 transition-all duration-300">EduLearn</span>
+                    <p class="text-xs font-semibold text-gray-600 mt-0.5">SMK HIDAYATUL MUSLIMIN</p>
                     <div
                         class="h-0.5 w-0 group-hover:w-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500 rounded-full">
                     </div>
