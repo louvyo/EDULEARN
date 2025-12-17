@@ -10,16 +10,13 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\AktivitasController;
 use App\Http\Controllers\ProfileController;
-use Laravel\Socialite\Facades\Socialite;
 
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// OAuth: Google
-Route::get('/auth/google', [AuthController::class, 'googleRedirect'])->name('oauth.google.redirect');
-Route::get('/auth/google/callback', [AuthController::class, 'googleCallback'])->name('oauth.google.callback');
+// OAuth Google removed
 
 // Optional: Registration Routes (uncomment if needed)
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');

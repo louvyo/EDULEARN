@@ -6,8 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Support\Str;
+ 
 
 class AuthController extends Controller
 {
@@ -122,71 +121,5 @@ class AuthController extends Controller
             ->with('success', 'Registrasi berhasil! Silakan login dengan akun Anda. 🎉');
     }
 
-    /**
-     * Redirect to Google OAuth
-     */
-    public function googleRedirect()
-    {
-        if (!config('services.google.client_id') || !config('services.google.client_secret')) {
-            return redirect()->route('login')->with('error', 'Google OAuth belum dikonfigurasi. Isi GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET di .env');
-        }
-        config(['services.google.redirect' => route('oauth.google.callback')]);
-        return Socialite::driver('google')->redirect();
-    }
-
-    /**
-     * Handle Google OAuth callback
-     */
-    public function googleCallback()
-    {
-        if (!config('services.google.client_id') || !config('services.google.client_secret')) {
-            return redirect()->route('login')->with('error', 'Google OAuth belum dikonfigurasi. Isi GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET di .env');
-        }
-        try {
-            config(['services.google.redirect' => route('oauth.google.callback')]);
-            $googleUser = Socialite::driver('google')->user();
-        } catch (\Exception $e) {
-            return redirect()->route('login')->with('error', 'Gagal login dengan Google. Coba lagi.');
-        }
-
-        $email = $googleUser->getEmail();
-        $name = $googleUser->getName() ?: $googleUser->getNickname() ?: 'User';
-        $providerId = $googleUser->getId();
-        $avatar = $googleUser->getAvatar();
-
-        // Cari user by provider_id atau email
-        $user = User::where(function ($q) use ($providerId) {
-                $q->where('provider', 'google')->where('provider_id', $providerId);
-            })
-            ->orWhere('email', $email)
-            ->first();
-
-        if (!$user) {
-            $user = User::create([
-                'name' => $name,
-                'email' => $email,
-                'password' => Hash::make(Str::random(32)),
-                'role' => 'siswa',
-                'provider' => 'google',
-                'provider_id' => $providerId,
-                'avatar_path' => $avatar,
-                'email_verified_at' => now(),
-            ]);
-        } else {
-            // Update provider linkage if missing
-            $user->provider = $user->provider ?: 'google';
-            $user->provider_id = $user->provider_id ?: $providerId;
-            if ($avatar && empty($user->avatar_path)) {
-                $user->avatar_path = $avatar;
-            }
-            if (empty($user->email_verified_at)) {
-                $user->email_verified_at = now();
-            }
-            $user->save();
-        }
-
-        Auth::login($user, true);
-
-        return redirect()->intended('/dashboard')->with('success', 'Berhasil login dengan Google. Selamat datang, ' . $user->name . '!');
-    }
+    // Google OAuth removed
 }

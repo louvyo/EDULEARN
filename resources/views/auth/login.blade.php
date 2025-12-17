@@ -178,24 +178,7 @@
             <form class="card-glass rounded-3xl shadow-2xl p-8 space-y-6" action="{{ route('login') }}" method="POST">
                 @csrf
 
-                <!-- Social Login -->
-                <div class="space-y-4">
-                    <a href="{{ route('oauth.google.redirect') }}"
-                        class="w-full inline-flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl border border-gray-200 bg-white text-gray-900 hover:bg-gray-50 shadow-sm hover:shadow transition-all duration-200">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M21.35 11.1H12v2.9h5.35c-.25 1.5-1.8 4.4-5.35 4.4A6.4 6.4 0 0 1 5.6 12a6.4 6.4 0 0 1 6.4-6.4c3.65 0 5.15 2.3 5.65 3.4l2.55-2.45C18.7 4.1 16.35 3 12 3 6.5 3 2 7.5 2 13s4.5 10 10 10c5.75 0 9.55-4.05 9.55-9.75 0-.65-.1-1.1-.2-1.65Z"
-                                fill="#4285F4" />
-                        </svg>
-                        <span class="font-semibold">Lanjutkan dengan Google</span>
-                    </a>
-
-                    <div class="flex items-center gap-4">
-                        <div class="h-px bg-gray-200 flex-1"></div>
-                        <span class="text-xs text-gray-500 font-medium">atau login dengan email</span>
-                        <div class="h-px bg-gray-200 flex-1"></div>
-                    </div>
-                </div>
+                <!-- Social login removed -->
 
                 <!-- Email -->
                 <div class="space-y-2">
